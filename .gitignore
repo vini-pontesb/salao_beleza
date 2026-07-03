@@ -1,0 +1,24 @@
+# Dependências
+node_modules/
+
+# Banco gerado (o schema.sql é a fonte da verdade)
+database/*.db
+database/*.sqlite
+
+# Build
+dist/
+build/
+
+# Ambiente
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
