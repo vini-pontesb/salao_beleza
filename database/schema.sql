@@ -2,15 +2,14 @@
 -- Sistema de Agendamento de Salão de Beleza
 -- Trabalho Prático de Banco de Dados I - IFRJ Campus Niterói
 -- Grupo: Vinicius Pontes e Jean Macedo
--- SGBD: SQLite (facilmente adaptável para PostgreSQL/MySQL)
+-- SGBD: PostgreSQL (Supabase)
 -- =====================================================================
 
--- IMPORTANTE no SQLite: sem esta linha as chaves estrangeiras NÃO são
--- validadas. A aplicação DEVE executar este PRAGMA a cada conexão.
-PRAGMA foreign_keys = ON;
+-- No PostgreSQL as chaves estrangeiras são SEMPRE validadas — não existe
+-- o PRAGMA foreign_keys do SQLite.
 
 -- ---------------------------------------------------------------------
--- Remoção (ordem importa por causa das FKs)
+-- Remoção (ordem importa por causa das FKs: filhos antes dos pais)
 -- ---------------------------------------------------------------------
 DROP TABLE IF EXISTS agendamento;
 DROP TABLE IF EXISTS servico;
@@ -21,23 +20,23 @@ DROP TABLE IF EXISTS cliente;
 -- Tabela: cliente  (campos textuais, numéricos e de data)
 -- ---------------------------------------------------------------------
 CREATE TABLE cliente (
-    id_cliente       INTEGER PRIMARY KEY AUTOINCREMENT,
-    nome             TEXT    NOT NULL,
+    id_cliente       SERIAL PRIMARY KEY,
+    nome             TEXT NOT NULL,
     telefone         TEXT,
-    email            TEXT    UNIQUE,
+    email            TEXT UNIQUE,
     data_nascimento  DATE,
-    data_cadastro    DATE    NOT NULL DEFAULT (date('now'))
+    data_cadastro    DATE NOT NULL DEFAULT CURRENT_DATE
 );
 
 -- ---------------------------------------------------------------------
 -- Tabela: profissional
 -- ---------------------------------------------------------------------
 CREATE TABLE profissional (
-    id_profissional      INTEGER PRIMARY KEY AUTOINCREMENT,
-    nome                 TEXT    NOT NULL,
+    id_profissional      SERIAL PRIMARY KEY,
+    nome                 TEXT NOT NULL,
     especialidade        TEXT,
     telefone             TEXT,
-    comissao_percentual  REAL    NOT NULL DEFAULT 0,
+    comissao_percentual  NUMERIC(5,2) NOT NULL DEFAULT 0,
     data_admissao        DATE
 );
 
@@ -45,12 +44,12 @@ CREATE TABLE profissional (
 -- Tabela: servico
 -- ---------------------------------------------------------------------
 CREATE TABLE servico (
-    id_servico       INTEGER PRIMARY KEY AUTOINCREMENT,
-    nome             TEXT    NOT NULL,
+    id_servico       SERIAL PRIMARY KEY,
+    nome             TEXT NOT NULL,
     descricao        TEXT,
-    preco            REAL    NOT NULL,
+    preco            NUMERIC(10,2) NOT NULL,
     duracao_minutos  INTEGER,
-    ativo            INTEGER NOT NULL DEFAULT 1   -- 1 = ativo, 0 = inativo
+    ativo            SMALLINT NOT NULL DEFAULT 1   -- 1 = ativo, 0 = inativo
 );
 
 -- ---------------------------------------------------------------------
@@ -63,14 +62,14 @@ CREATE TABLE servico (
 --   ON UPDATE CASCADE   -> se um id de referência mudar, propaga.
 -- ---------------------------------------------------------------------
 CREATE TABLE agendamento (
-    id_agendamento    INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_agendamento    SERIAL PRIMARY KEY,
     id_cliente        INTEGER NOT NULL,
     id_profissional   INTEGER NOT NULL,
     id_servico        INTEGER NOT NULL,
-    data_agendamento  DATE    NOT NULL,
+    data_agendamento  DATE NOT NULL,
     hora              TEXT,
-    valor             REAL,
-    status            TEXT    NOT NULL DEFAULT 'agendado',  -- agendado | concluido | cancelado
+    valor             NUMERIC(10,2),
+    status            TEXT NOT NULL DEFAULT 'agendado',  -- agendado | concluido | cancelado
     FOREIGN KEY (id_cliente)      REFERENCES cliente(id_cliente)
         ON DELETE RESTRICT ON UPDATE CASCADE,
     FOREIGN KEY (id_profissional) REFERENCES profissional(id_profissional)
@@ -117,10 +116,11 @@ INSERT INTO agendamento (id_cliente, id_profissional, id_servico, data_agendamen
 -- =====================================================================
 
 -- (1) CONSULTA EM UMA TABELA — cliente por nome (parâmetro de filtro)
---     Ex.: buscar "ana"
+--     Ex.: buscar "ana". ILIKE é a busca "case-insensitive" do PostgreSQL
+--     (o LIKE puro diferencia maiúsculas/minúsculas, ao contrário do SQLite).
 SELECT *
 FROM cliente
-WHERE nome LIKE '%ana%';
+WHERE nome ILIKE '%ana%';
 
 -- (2) CONSULTA COM INNER JOIN — agendamentos de um profissional
 --     Retorna cliente, serviço, data e valor dos agendamentos de um profissional

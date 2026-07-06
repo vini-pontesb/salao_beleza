@@ -19,20 +19,19 @@ Priorize atender 100% dos requisitos obrigatórios antes de qualquer extra.
 
 ## Stack definida
 
-- **Banco:** SQLite (arquivo local `database/salao.db`), modelo relacional.
-  - Sempre executar `PRAGMA foreign_keys = ON;` a cada conexão — sem isso
-    o SQLite ignora as chaves estrangeiras.
+- **Banco:** PostgreSQL, hospedado no Supabase, modelo relacional.
+  - A conexão é feita via `Pool` da biblioteca `pg`, lendo `DATABASE_URL`
+    do `.env` (nunca versionado — ver `.env.example`).
+  - No PostgreSQL as chaves estrangeiras são SEMPRE validadas: não existe
+    (nem é preciso) o PRAGMA que o SQLite exigia.
   - O schema oficial está em `database/schema.sql`. Não divergir dele sem
-    atualizar o arquivo.
+    atualizar o arquivo (e sem reaplicar no SQL Editor do Supabase).
 - **Back-end:** Node.js + Express, usando **SQL explícito** (biblioteca
-  `better-sqlite3`). Nada de ORM — as queries SQL devem ficar visíveis no
-  código, pois a disciplina exige demonstrar INSERT/UPDATE/DELETE/SELECT,
-  INNER JOIN e subconsultas rodando no banco.
+  `pg`, sem ORM). As queries usam placeholders posicionais (`$1, $2...`)
+  e ficam visíveis no código, pois a disciplina exige demonstrar
+  INSERT/UPDATE/DELETE/SELECT, INNER JOIN e subconsultas rodando no banco.
 - **Front-end:** React (Vite) + CSS. Interface adequada ao contexto de um
   salão de beleza, com boa navegabilidade.
-
-> Se em algum momento fizer sentido trocar por PostgreSQL/Supabase, avise
-> antes e ajuste o `schema.sql` correspondente.
 
 ## Modelo de dados (4 tabelas)
 
@@ -90,20 +89,19 @@ Aplicação:
 - Commits pequenos e descritivos, em português. Alternar autoria entre
   os dois integrantes ao longo do projeto (usar `git config user.name`
   correto de quem estiver na máquina, ou co-author nos commits).
-- Não commitar `node_modules/` nem o arquivo `.db` gerado (ver `.gitignore`).
+- Não commitar `node_modules/` nem o `.env` com a `DATABASE_URL` real (ver `.gitignore`).
 
 ## Estrutura de pastas alvo
 
 ```
 salao-agendamento/
 ├── database/
-│   ├── schema.sql        # estrutura + dados de teste (fonte da verdade)
-│   └── salao.db          # gerado (NÃO versionar)
-├── backend/              # Express + better-sqlite3 (a criar)
+│   └── schema.sql        # estrutura (PostgreSQL) + dados de teste (fonte da verdade)
+├── backend/
 │   ├── server.js
-│   ├── db.js             # conexão + PRAGMA foreign_keys
+│   ├── db.js             # Pool do pg lendo DATABASE_URL (.env)
 │   └── routes/           # cliente, profissional, servico, agendamento, consultas
-├── frontend/             # React (Vite) (a criar)
+├── frontend/
 │   └── src/
 ├── docs/
 │   ├── requisitos.md

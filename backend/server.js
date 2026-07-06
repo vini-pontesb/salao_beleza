@@ -1,6 +1,6 @@
 // =====================================================================
 // server.js — API REST do Sistema de Agendamento de Salão de Beleza.
-// Express + better-sqlite3, com SQL explícito nas rotas.
+// Express + pg (PostgreSQL/Supabase), com SQL explícito nas rotas.
 // =====================================================================
 const express = require('express');
 const cors = require('cors');
@@ -48,33 +48,30 @@ app.use((req, res) => {
 
 // ---------------------------------------------------------------------
 // Tratamento central de erros.
-// better-sqlite3 é síncrono, então erros lançados nas rotas chegam aqui.
-// Traduzimos os erros de restrição do SQLite em mensagens amigáveis.
+// As rotas são async e encaminham erros com next(err); eles chegam aqui.
+// Traduzimos os códigos de restrição do PostgreSQL em mensagens amigáveis
+// (lista completa em: https://www.postgresql.org/docs/current/errcodes-appendix.html).
 // ---------------------------------------------------------------------
 app.use((err, req, res, next) => {
   console.error('[ERRO]', err.code || '', err.message);
 
-  const msg = err.message || '';
-  if (err.code && err.code.startsWith('SQLITE_CONSTRAINT')) {
-    // ON DELETE RESTRICT: tentou excluir um registro que tem filhos.
-    // Obs.: no SQLite o RESTRICT chega aqui com código
-    // SQLITE_CONSTRAINT_TRIGGER (e não _FOREIGNKEY), então detectamos
-    // pela mensagem "FOREIGN KEY constraint failed".
-    if (msg.includes('FOREIGN KEY')) {
+  switch (err.code) {
+    // 23503 = foreign_key_violation. Ex.: ON DELETE RESTRICT bloqueou a
+    // exclusão de um cliente/profissional/serviço com agendamento vinculado.
+    case '23503':
       return res.status(409).json({
         erro: 'Não é possível excluir: existe(m) agendamento(s) vinculado(s) ' +
               'a este registro. Exclua os agendamentos primeiro (o histórico ' +
               'é preservado por integridade referencial).'
       });
-    }
-    // UNIQUE: e-mail de cliente repetido, por exemplo.
-    if (err.code === 'SQLITE_CONSTRAINT_UNIQUE' || msg.includes('UNIQUE')) {
+    // 23505 = unique_violation. Ex.: e-mail de cliente repetido.
+    case '23505':
       return res.status(409).json({
         erro: 'Já existe um cadastro com esse valor único (ex.: e-mail já usado).'
       });
-    }
-    // Demais restrições (NOT NULL, CHECK...).
-    return res.status(400).json({ erro: 'Dados inválidos: ' + msg });
+    // 23502 = not_null_violation.
+    case '23502':
+      return res.status(400).json({ erro: 'Dados inválidos: ' + err.message });
   }
 
   res.status(500).json({ erro: 'Erro interno do servidor.' });

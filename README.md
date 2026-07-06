@@ -5,35 +5,39 @@ Computação, IFRJ Campus Niterói.
 
 **Grupo:** Vinicius Pontes e Jean Macedo.
 
-Aplicação web integrada a um banco de dados relacional (SQLite) para
-gerenciar clientes, profissionais, serviços e agendamentos de um salão de
-beleza.
+Aplicação web integrada a um banco de dados relacional (PostgreSQL, no
+Supabase) para gerenciar clientes, profissionais, serviços e agendamentos
+de um salão de beleza.
 
 ## Tecnologias
 
-- **Banco de dados:** SQLite (modelo relacional)
-- **Back-end:** Node.js + Express + `better-sqlite3` (SQL explícito)
+- **Banco de dados:** PostgreSQL (Supabase), modelo relacional
+- **Back-end:** Node.js + Express + `pg` (SQL explícito, sem ORM)
 - **Front-end:** React (Vite) + CSS
 
 ## Estrutura
 
 ```
-database/   Script SQL (estrutura + dados de teste) e o banco gerado
-backend/    API REST em Express (a ser criada com o Claude Code)
-frontend/   Aplicação React (a ser criada com o Claude Code)
+database/   Script SQL (estrutura + dados de teste), versão PostgreSQL
+backend/    API REST em Express
+frontend/   Aplicação React
 docs/       Requisitos e modelo lógico
 CLAUDE.md   Contexto do projeto para o Claude Code
 ```
 
-## Como rodar (será preenchido conforme o projeto for construído)
+## Como rodar
 
 ### Banco de dados
+O schema já foi criado no Supabase pelo SQL Editor a partir de
+`database/schema.sql`. Para recriá-lo do zero (reseta os dados de teste):
 ```bash
-# Gera o banco a partir do script
-sqlite3 database/salao.db < database/schema.sql
+cd backend
+npm run db:init
 ```
 
 ### Back-end
+Crie `backend/.env` (a partir de `backend/.env.example`) com a
+`DATABASE_URL` do seu projeto Supabase antes de instalar/rodar:
 ```bash
 cd backend
 npm install
