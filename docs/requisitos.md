@@ -9,7 +9,7 @@
 - Restrições de integridade: PRIMARY KEY, FOREIGN KEY, NOT NULL, UNIQUE.
 - Regras de atualização/exclusão nas FKs: CASCADE, RESTRICT, SET NULL ou
   NO ACTION, conforme a lógica do contexto.
-- Tecnologia de BD de livre escolha (relacional). Aqui: SQLite.
+- Tecnologia de BD de livre escolha (relacional). Aqui: PostgreSQL (Supabase).
 
 ## Aplicação (front-end + back-end)
 - CRUD completo por interface gráfica (INSERT, UPDATE, DELETE, SELECT).

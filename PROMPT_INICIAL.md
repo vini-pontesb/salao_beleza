@@ -15,15 +15,17 @@ Quero construir em etapas, uma de cada vez, esperando eu confirmar antes de
 seguir para a próxima. Não pule etapas nem gere tudo de uma vez.
 
 **Etapa 1 — Banco de dados.**
-Crie o script para gerar o arquivo SQLite `database/salao.db` a partir de
-`database/schema.sql`. Depois execute as 4 consultas exigidas (busca de
-cliente por nome; INNER JOIN por profissional; INNER JOIN por período;
-subconsulta NOT IN de clientes sem agendamento) e me mostre os resultados,
-pra eu confirmar que o banco está correto antes de irmos ao back-end.
+Aplique `database/schema.sql` no projeto PostgreSQL do Supabase (SQL
+Editor, ou `npm run db:init` depois que o back-end existir). Depois
+execute as 4 consultas exigidas (busca de cliente por nome; INNER JOIN
+por profissional; INNER JOIN por período; subconsulta NOT IN de clientes
+sem agendamento) e me mostre os resultados, pra eu confirmar que o banco
+está correto antes de irmos ao back-end.
 
-**Etapa 2 — Back-end (Express + better-sqlite3).**
+**Etapa 2 — Back-end (Express + pg/PostgreSQL).**
 Crie o servidor Express com:
-- `db.js`: conexão ao SQLite com `PRAGMA foreign_keys = ON`.
+- `db.js`: `Pool` de conexão ao PostgreSQL (Supabase) via `pg`, lendo
+  `DATABASE_URL` do `.env` (nunca versionado).
 - Rotas CRUD completas para **cliente** e **agendamento** (GET listar,
   GET por id, POST inserir, PUT atualizar, DELETE excluir) usando SQL
   explícito (INSERT/UPDATE/SELECT/DELETE). Comente cada query.
