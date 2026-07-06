@@ -47,24 +47,24 @@ profissional/serviço com agendamento) e `ON UPDATE CASCADE`.
 ## Requisitos OBRIGATÓRIOS (checklist de correção)
 
 Banco de dados:
-- [ ] 4 tabelas relacionadas, cada uma com 5+ campos.
-- [ ] Tipos textuais, numéricos e de data presentes.
-- [ ] Restrições: PRIMARY KEY, FOREIGN KEY, NOT NULL, UNIQUE.
-- [ ] Regras de exclusão/atualização definidas nas FKs (RESTRICT/CASCADE).
-- [ ] Script SQL com estrutura + dados de teste (`database/schema.sql`).
+- [x] 4 tabelas relacionadas, cada uma com 5+ campos.
+- [x] Tipos textuais, numéricos e de data presentes.
+- [x] Restrições: PRIMARY KEY, FOREIGN KEY, NOT NULL, UNIQUE.
+- [x] Regras de exclusão/atualização definidas nas FKs (RESTRICT/CASCADE).
+- [x] Script SQL com estrutura + dados de teste (`database/schema.sql`).
 
 Aplicação:
-- [ ] **CRUD completo** (cadastrar, alterar, excluir, listar) para as
+- [x] **CRUD completo** (cadastrar, alterar, excluir, listar) para as
       tabelas **cliente** e **agendamento** — usando INSERT/UPDATE/DELETE/SELECT.
-- [ ] Consulta em **uma tabela** por parâmetro: buscar cliente por nome
+- [x] Consulta em **uma tabela** por parâmetro: buscar cliente por nome
       (SELECT + WHERE).
-- [ ] Consulta com **INNER JOIN** (duas variantes): agendamentos por
+- [x] Consulta com **INNER JOIN** (duas variantes): agendamentos por
       profissional; agendamentos por período de datas.
-- [ ] Consulta com **subconsulta IN / NOT IN**: clientes que nunca fizeram
+- [x] Consulta com **subconsulta IN / NOT IN**: clientes que nunca fizeram
       agendamento (`NOT IN`).
-- [ ] Tratamento de integridade referencial no back-end (ex.: mensagem
+- [x] Tratamento de integridade referencial no back-end (ex.: mensagem
       amigável quando `RESTRICT` bloqueia uma exclusão, em vez de erro cru).
-- [ ] Interface web adequada ao contexto e com boa UX.
+- [x] Interface web adequada ao contexto e com boa UX.
 
 > A tabela de controle da turma dizia "listar agendamentos do salão inteiro"
 > como consulta de subconsulta, mas isso NÃO exige IN/NOT IN. Por isso foi
