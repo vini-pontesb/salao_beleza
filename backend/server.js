@@ -71,7 +71,7 @@ app.use((err, req, res, next) => {
       });
     // 23502 = not_null_violation.
     case '23502':
-      return res.status(400).json({ erro: 'Dados inválidos: ' + err.message });
+      return res.status(400).json({ erro: 'Dados inválidos: campo obrigatório em branco.' });
   }
 
   res.status(500).json({ erro: 'Erro interno do servidor.' });
