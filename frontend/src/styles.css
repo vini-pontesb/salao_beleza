@@ -1,0 +1,111 @@
+:root {
+  --rosa: #c2185b;
+  --rosa-claro: #f8bbd0;
+  --plum: #6a1b4d;
+  --creme: #fff7f3;
+  --dourado: #c8a24a;
+  --texto: #3a2a33;
+  --cinza: #8a7b83;
+  --borda: #efd9e2;
+  --ok: #2e7d5b;
+  --erro: #c0392b;
+  --sombra: 0 6px 20px rgba(106, 27, 77, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(160deg, #fff7f3, #fdeef4);
+  color: var(--texto);
+}
+
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+
+/* ---- Barra superior / navegação ---- */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; padding: 1rem 2rem;
+  background: linear-gradient(120deg, var(--plum), var(--rosa));
+  color: #fff; box-shadow: var(--sombra);
+}
+.brand { display: flex; align-items: center; gap: .8rem; }
+.brand-icon { font-size: 2rem; }
+.brand h1 { margin: 0; font-size: 1.3rem; letter-spacing: .5px; }
+.brand p { margin: 0; font-size: .8rem; opacity: .85; }
+.menu { display: flex; gap: .4rem; flex-wrap: wrap; }
+.menu a {
+  color: #fff; text-decoration: none; padding: .5rem 1rem;
+  border-radius: 999px; font-weight: 600; font-size: .95rem;
+  transition: background .2s;
+}
+.menu a:hover { background: rgba(255, 255, 255, .15); }
+.menu a.active { background: #fff; color: var(--plum); }
+
+/* ---- Conteúdo ---- */
+.content { flex: 1; width: min(1100px, 100%); margin: 0 auto; padding: 1.5rem; }
+h2 { color: var(--plum); margin-top: .5rem; }
+
+.card {
+  background: #fff; border: 1px solid var(--borda);
+  border-radius: 14px; padding: 1.2rem 1.4rem; margin-bottom: 1.4rem;
+  box-shadow: var(--sombra);
+}
+.card h3 { margin-top: 0; color: var(--rosa); }
+.card h3 small { color: var(--cinza); font-weight: 400; font-size: .8rem; }
+
+/* ---- Formulários ---- */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+label { display: flex; flex-direction: column; gap: .3rem; font-size: .85rem; color: var(--cinza); font-weight: 600; }
+input, select {
+  padding: .55rem .7rem; border: 1px solid var(--borda); border-radius: 8px;
+  font-size: .95rem; color: var(--texto); background: #fff; font-family: inherit;
+}
+input:focus, select:focus { outline: 2px solid var(--rosa-claro); border-color: var(--rosa); }
+
+.acoes { margin-top: 1rem; display: flex; gap: .6rem; }
+
+/* ---- Botões ---- */
+.btn {
+  border: 1px solid var(--borda); background: #fff; color: var(--plum);
+  padding: .55rem 1.1rem; border-radius: 8px; cursor: pointer; font-weight: 600;
+  font-size: .9rem; transition: .15s; font-family: inherit;
+}
+.btn:hover { background: #faf0f4; }
+.btn.primary { background: var(--rosa); color: #fff; border-color: var(--rosa); }
+.btn.primary:hover { background: var(--plum); }
+.btn.danger { color: var(--erro); border-color: #f0c6c0; }
+.btn.danger:hover { background: #fdecea; }
+.btn.small { padding: .3rem .7rem; font-size: .8rem; }
+
+/* ---- Tabelas ---- */
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th, td { text-align: left; padding: .6rem .5rem; border-bottom: 1px solid var(--borda); }
+th { color: var(--plum); font-size: .75rem; text-transform: uppercase; letter-spacing: .5px; }
+tbody tr:hover { background: #fdf5f8; }
+.linha-acoes { display: flex; gap: .4rem; }
+.vazio { text-align: center; color: var(--cinza); padding: 1rem; font-style: italic; }
+
+/* ---- Etiquetas de status ---- */
+.tag { padding: .2rem .6rem; border-radius: 999px; font-size: .75rem; font-weight: 700; }
+.tag.agendado { background: #fff3d6; color: #9a6b00; }
+.tag.concluido { background: #d7f2e4; color: var(--ok); }
+.tag.cancelado { background: #fde0dc; color: var(--erro); }
+
+/* ---- Alertas ---- */
+.alert {
+  display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  padding: .7rem 1rem; border-radius: 10px; margin-bottom: 1rem; font-size: .9rem;
+}
+.alert-erro { background: #fdecea; color: var(--erro); border: 1px solid #f5c6c0; }
+.alert-ok { background: #e6f6ee; color: var(--ok); border: 1px solid #bfe6d0; }
+.alert-close { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: inherit; line-height: 1; }
+
+/* ---- Linha de filtro das consultas ---- */
+.linha-filtro { display: flex; flex-wrap: wrap; gap: .6rem; align-items: end; margin-bottom: 1rem; }
+.linha-filtro input, .linha-filtro select { min-width: 200px; }
+label.inline { flex-direction: row; align-items: center; gap: .4rem; color: var(--texto); }
+
+/* ---- Rodapé ---- */
+.rodape { text-align: center; padding: 1rem; color: var(--cinza); font-size: .8rem; }
