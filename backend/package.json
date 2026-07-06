@@ -4,12 +4,16 @@
   "description": "Back-end do Sistema de Agendamento de Salão de Beleza (Banco de Dados I - IFRJ Niterói)",
   "type": "commonjs",
   "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
     "db:init": "node scripts/init-db.js",
     "db:consultas": "node scripts/demo-consultas.js"
   },
   "author": "Vinicius Pontes e Jean Macedo",
   "license": "MIT",
   "dependencies": {
-    "better-sqlite3": "^12.11.1"
+    "better-sqlite3": "^12.11.1",
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
   }
 }
