@@ -2,6 +2,7 @@
 // server.js — API REST do Sistema de Agendamento de Salão de Beleza.
 // Express + pg (PostgreSQL/Supabase), com SQL explícito nas rotas.
 // =====================================================================
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 
@@ -16,8 +17,9 @@ const app = express();
 app.use(cors());            // libera o front-end (Vite) a consumir a API
 app.use(express.json());    // faz o parse de corpo JSON nas requisições
 
-// Rota raiz: pequeno "índice" da API (útil para conferir se subiu).
-app.get('/', (req, res) => {
+// Índice da API em /api (útil para conferir se subiu). A raiz "/" agora
+// é servida pelo front-end React buildado (ver bloco de estáticos abaixo).
+app.get('/api', (req, res) => {
   res.json({
     api: 'Salão de Beleza - Agendamento',
     rotas: {
@@ -41,7 +43,27 @@ app.use('/api/profissionais', profissionaisRouter);
 app.use('/api/servicos', servicosRouter);
 app.use('/api/consultas', consultasRouter);
 
-// 404 para qualquer outra rota.
+// ---------------------------------------------------------------------
+// Front-end em produção.
+// Servimos o React já buildado (frontend/dist). Como este bloco vem DEPOIS
+// das rotas /api, a API sempre tem prioridade sobre os arquivos estáticos.
+// ---------------------------------------------------------------------
+const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+
+// Arquivos estáticos: index.html, assets/*.js, assets/*.css, imagens etc.
+app.use(express.static(frontendDist));
+
+// Fallback SPA (compatível com Express 5 — sem app.get('*')): qualquer GET
+// que NÃO comece com /api devolve o index.html, para o react-router tratar
+// links diretos (ex.: abrir /agendamentos no navegador e dar F5).
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api')) {
+    return res.sendFile(path.join(frontendDist, 'index.html'));
+  }
+  next();
+});
+
+// 404 para qualquer outra rota (ex.: /api inexistente ou método não-GET).
 app.use((req, res) => {
   res.status(404).json({ erro: 'Rota não encontrada.' });
 });

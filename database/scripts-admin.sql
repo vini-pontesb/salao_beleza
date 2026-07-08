@@ -146,7 +146,7 @@ FROM agendamento a
 INNER JOIN profissional p ON p.id_profissional = a.id_profissional
 WHERE a.status = 'concluido'
 GROUP BY p.id_profissional, p.nome
-HAVING SUM(a.valor) > 100
+HAVING SUM(a.valor) > 10
 ORDER BY total_faturado DESC;
 
 
