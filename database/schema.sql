@@ -91,9 +91,11 @@ INSERT INTO cliente (nome, telefone, email, data_nascimento, data_cadastro) VALU
     ('Fabio Nogueira',   '21988880006', 'fabio.n@email.com',      '1985-01-22', '2026-04-02'); -- nunca agendou
 
 INSERT INTO profissional (nome, especialidade, telefone, comissao_percentual, data_admissao) VALUES
-    ('Marina Alves',   'Cabeleireira', '21977770001', 40.0, '2024-06-01'),
-    ('Rafael Dias',    'Barbeiro',     '21977770002', 35.0, '2025-01-15'),
-    ('Sofia Ramos',    'Manicure',     '21977770003', 30.0, '2025-03-10');
+    ('Marina Alves',   'Cabeleireira',  '21977770001', 40.0, '2024-06-01'),
+    ('Rafael Dias',    'Barbeiro',      '21977770002', 35.0, '2025-01-15'),
+    ('Sofia Ramos',    'Manicure',      '21977770003', 30.0, '2025-03-10'),
+    ('Tiago Nunes',    'Cabeleireiro',  '21977770004', 38.0, '2025-04-20'),
+    ('Vera Lopes',     'Esteticista',   '21977770005', 33.0, '2025-05-05');
 
 INSERT INTO servico (nome, descricao, preco, duracao_minutos, ativo) VALUES
     ('Corte Feminino',   'Corte e finalização',        80.0,  60, 1),

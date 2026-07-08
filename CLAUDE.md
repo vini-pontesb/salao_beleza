@@ -52,6 +52,11 @@ Banco de dados:
 - [x] Restrições: PRIMARY KEY, FOREIGN KEY, NOT NULL, UNIQUE.
 - [x] Regras de exclusão/atualização definidas nas FKs (RESTRICT/CASCADE).
 - [x] Script SQL com estrutura + dados de teste (`database/schema.sql`).
+- [x] Scripts SQL do administrador (`database/scripts-admin.sql`, rodar
+      manualmente no SQL Editor do Supabase — não é uma tela da aplicação):
+      criação das tabelas, TRUNCATE + RESTART IDENTITY CASCADE, INSERT de
+      5 registros por tabela, consulta agregada (INNER JOIN + COUNT/SUM/AVG
+      + GROUP BY + HAVING) e subconsultas com ALL e com EXISTS.
 
 Aplicação:
 - [x] **CRUD completo** (cadastrar, alterar, excluir, listar) para as
@@ -96,7 +101,8 @@ Aplicação:
 ```
 salao-agendamento/
 ├── database/
-│   └── schema.sql        # estrutura (PostgreSQL) + dados de teste (fonte da verdade)
+│   ├── schema.sql         # estrutura (PostgreSQL) + dados de teste (fonte da verdade)
+│   └── scripts-admin.sql  # scripts do administrador (SQL Editor do Supabase)
 ├── backend/
 │   ├── server.js
 │   ├── db.js             # Pool do pg lendo DATABASE_URL (.env)

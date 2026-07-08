@@ -18,7 +18,7 @@ de um salão de beleza.
 ## Estrutura
 
 ```
-database/   Script SQL (estrutura + dados de teste), versão PostgreSQL
+database/   Scripts SQL (estrutura + dados de teste, e scripts do administrador), versão PostgreSQL
 backend/    API REST em Express
 frontend/   Aplicação React
 docs/       Requisitos e modelo lógico
@@ -58,6 +58,16 @@ apaga e recria as 4 tabelas**):
 ```bash
 npm run db:init
 ```
+
+### Scripts do administrador
+`database/scripts-admin.sql` reúne scripts avulsos para o administrador
+rodar manualmente no **SQL Editor do Supabase** (não são uma tela da
+aplicação): recriação das 4 tabelas, limpeza de todos os dados
+(`TRUNCATE ... RESTART IDENTITY CASCADE`), carga de 5 registros por
+tabela, uma consulta agregada de faturamento por profissional (`INNER
+JOIN` + `COUNT/SUM/AVG` + `GROUP BY` + `HAVING`) e duas subconsultas
+(`>= ALL` para a maior comissão, e `EXISTS` para profissionais com
+agendamento).
 
 ### 3. Front-end
 ```bash
