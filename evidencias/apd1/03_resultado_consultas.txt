@@ -69,11 +69,11 @@ WHERE ativo = TRUE
 ORDER BY qtd_estoque, nome;
  id_produto |             nome             |   marca   | qtd_estoque | estoque_minimo 
 ------------+------------------------------+-----------+-------------+----------------
-         45 | Gel Fixador 300g             | Bozzano   |           0 |              8
-         18 | Bond Angel Leave-in 120ml    | Braé      |           1 |              5
-         36 | Sabonete Facial Antiacne 90g | Granado   |           1 |              8
+         36 | Sabonete Facial Antiacne 90g | Granado   |           0 |              5
          27 | Esmalte Cremoso Vermelho     | Risqué    |           2 |              5
-          9 | Shampoo Elixir Ultime 250ml  | Kérastase |           2 |              5
+         45 | Gel Fixador 300g             | Bozzano   |           2 |              5
+         18 | Bond Angel Leave-in 120ml    | Braé      |           3 |              5
+          9 | Shampoo Elixir Ultime 250ml  | Kérastase |           3 |              3
 (5 rows)
 
 ==============================================================================
@@ -86,12 +86,11 @@ SELECT nome,
 FROM cliente
 WHERE EXTRACT(MONTH FROM data_nascimento) = 12
 ORDER BY EXTRACT(DAY FROM data_nascimento);
-        nome        |  telefone   | data_nascimento | idade_em_dezembro 
---------------------+-------------+-----------------+-------------------
- Sabrina Duarte     | 21976705436 | 2005-12-01      |                21
- Ana Pereira        | 21971723871 | 1996-12-06      |                30
- Daniela Cavalcanti | 21991674297 | 1993-12-17      |                33
-(3 rows)
+      nome      |  telefone   | data_nascimento | idade_em_dezembro 
+----------------+-------------+-----------------+-------------------
+ Sabrina Duarte | 21976705436 | 2005-12-01      |                21
+ Ana Pereira    | 21971723871 | 1996-12-06      |                30
+(2 rows)
 
 ==============================================================================
 CS05 - Profissionais cabeleireiros(as) ou coloristas com comissão
@@ -101,19 +100,18 @@ FROM profissional
 WHERE especialidade IN ('Cabeleireira', 'Cabeleireiro', 'Colorista')
   AND comissao_percentual > 38
 ORDER BY data_admissao;
-        nome        | especialidade | comissao_percentual | data_admissao 
---------------------+---------------+---------------------+---------------
- Natália Campos     | Colorista     |               42.00 | 2019-04-08
- Luana Campos       | Cabeleireira  |               40.00 | 2019-06-29
- Gustavo Monteiro   | Cabeleireiro  |               40.00 | 2021-12-11
- Giovana Carvalho   | Cabeleireira  |               40.00 | 2022-07-17
- Larissa Tavares    | Cabeleireira  |               42.00 | 2023-08-21
- Marina Alves       | Cabeleireira  |               40.00 | 2024-06-01
- Sabrina Correia    | Colorista     |               43.00 | 2024-06-23
- Giovana Correia    | Cabeleireira  |               40.00 | 2026-05-21
- Sabrina Nascimento | Cabeleireira  |               43.00 | 2026-11-03
- Débora Gomes       | Colorista     |               43.00 | 2026-11-04
-(10 rows)
+       nome       | especialidade | comissao_percentual | data_admissao 
+------------------+---------------+---------------------+---------------
+ Igor Campos      | Cabeleireiro  |               42.00 | 2019-04-08
+ Tatiane Costa    | Colorista     |               42.00 | 2020-04-16
+ Beatriz Araújo   | Colorista     |               42.00 | 2022-11-13
+ Marina Alves     | Cabeleireira  |               40.00 | 2024-06-01
+ Leonardo Ribeiro | Cabeleireiro  |               42.00 | 2024-12-30
+ Débora Machado   | Cabeleireira  |               43.00 | 2025-01-11
+ Giovana Correia  | Colorista     |               40.00 | 2026-05-21
+ Luana Campos     | Cabeleireira  |               40.00 | 2026-11-03
+ Mariana Ribeiro  | Cabeleireira  |               40.00 | 2026-11-04
+(9 rows)
 
 ==============================================================================
 CJ01 - Faturamento e comissão por profissional (atendimentos
@@ -128,25 +126,18 @@ FROM agendamento a
 INNER JOIN profissional p ON p.id_profissional = a.id_profissional
 WHERE a.status = 'concluido'
 GROUP BY p.id_profissional, p.nome, p.especialidade, p.comissao_percentual
-HAVING SUM(a.valor) > 500
+HAVING SUM(a.valor) > 300
 ORDER BY faturamento DESC;
    profissional   | especialidade | atendimentos | faturamento | ticket_medio | comissao 
 ------------------+---------------+--------------+-------------+--------------+----------
- Thaís Gomes      | Cabeleireira  |            6 |     1600.00 |       266.67 |   608.00
- Simone Moreira   | Colorista     |            7 |     1434.00 |       204.86 |   501.90
- Tiago Nunes      | Cabeleireiro  |            6 |     1135.00 |       189.17 |   431.30
- Beatriz Correia  | Maquiadora    |            3 |     1050.00 |       350.00 |   346.50
- Aline Santos     | Maquiadora    |            4 |      950.00 |       237.50 |   370.50
- Lucas Martins    | Cabeleireiro  |            5 |      930.00 |       186.00 |   334.80
- Marina Alves     | Cabeleireira  |            5 |      820.00 |       164.00 |   328.00
- Giovana Carvalho | Cabeleireira  |            4 |      765.00 |       191.25 |   306.00
- Flávia Duarte    | Cabeleireira  |            3 |      692.00 |       230.67 |   249.12
- Lucas Pinto      | Cabeleireiro  |            2 |      662.00 |       331.00 |   231.70
- Felipe Martins   | Cabeleireiro  |            4 |      655.00 |       163.75 |   248.90
- Larissa Tavares  | Cabeleireira  |            3 |      655.00 |       218.33 |   275.10
- Luana Campos     | Cabeleireira  |            5 |      635.00 |       127.00 |   254.00
- Débora Oliveira  | Cabeleireira  |            2 |      560.00 |       280.00 |   196.00
-(14 rows)
+ Marina Alves     | Cabeleireira  |            5 |      970.00 |       194.00 |   388.00
+ Tiago Nunes      | Cabeleireiro  |            3 |      850.00 |       283.33 |   323.00
+ Isabela Pereira  | Maquiadora    |            3 |      830.00 |       276.67 |   265.60
+ Vera Lopes       | Esteticista   |            3 |      398.00 |       132.67 |   131.34
+ Juliana Martins  | Colorista     |            1 |      380.00 |       380.00 |   144.40
+ Aline Cavalcanti | Maquiadora    |            2 |      350.00 |       175.00 |   122.50
+ Rafael Dias      | Barbeiro      |            4 |      340.00 |        85.00 |   119.00
+(7 rows)
 
 ==============================================================================
 CJ02 - Receita por categoria de serviço e por mês (2º semestre de
@@ -163,33 +154,18 @@ GROUP BY DATE_TRUNC('month', pg.data_hora_pagamento), s.categoria
 ORDER BY mes, receita DESC;
    mes   | categoria | qtd_pagamentos | receita 
 ---------+-----------+----------------+---------
- 2026-07 | Cabelo    |             11 |  927.60
- 2026-07 | Maquiagem |              2 |  592.50
- 2026-07 | Unhas     |              6 |  462.50
- 2026-07 | Estética  |              2 |  300.00
- 2026-07 | Depilação |              3 |  148.00
- 2026-07 | Barba     |              2 |  117.00
- 2026-08 | Cabelo    |             12 | 2452.50
- 2026-08 | Maquiagem |              3 |  840.00
- 2026-08 | Estética  |              2 |  380.00
- 2026-08 | Unhas     |              5 |  315.00
- 2026-08 | Depilação |              2 |  129.50
- 2026-08 | Barba     |              1 |   57.00
- 2026-09 | Cabelo    |             14 | 2122.00
- 2026-09 | Maquiagem |              1 |  450.00
- 2026-09 | Estética  |              2 |  310.00
- 2026-09 | Unhas     |              2 |  156.25
- 2026-09 | Depilação |              3 |  122.50
- 2026-10 | Cabelo    |             10 | 1091.00
- 2026-10 | Estética  |              3 |  450.00
- 2026-10 | Unhas     |              4 |  247.25
- 2026-10 | Maquiagem |              1 |  150.00
- 2026-10 | Depilação |              4 |  139.77
- 2026-10 | Barba     |              2 |   94.00
- 2026-11 | Unhas     |              2 |  237.00
- 2026-11 | Estética  |              1 |   40.00
- 2026-11 | Depilação |              1 |   18.00
-(26 rows)
+ 2026-07 | Cabelo    |              6 |  670.00
+ 2026-07 | Maquiagem |              2 |  350.00
+ 2026-07 | Unhas     |              2 |   92.50
+ 2026-07 | Depilação |              1 |   18.00
+ 2026-09 | Estética  |              2 |  380.00
+ 2026-09 | Unhas     |              5 |  280.75
+ 2026-09 | Maquiagem |              1 |  180.00
+ 2026-09 | Cabelo    |              2 |   90.00
+ 2026-10 | Cabelo    |              3 |  640.00
+ 2026-10 | Maquiagem |              1 |  450.00
+ 2026-11 | Unhas     |              1 |   10.00
+(11 rows)
 
 ==============================================================================
 CJ03 - Uso de cada forma de pagamento nos serviços: quantidade,
@@ -206,10 +182,10 @@ GROUP BY pg.forma_pagamento
 ORDER BY total_recebido DESC;
  forma_pagamento | qtd | total_recebido | total_descontos | media_parcelas 
 -----------------+-----+----------------+-----------------+----------------
- pix             |  67 |        8221.87 |           80.63 |            1.0
- credito         |  49 |        5875.50 |            0.00 |            1.2
- debito          |  28 |        4058.20 |            0.00 |            1.0
- dinheiro        |  15 |        2015.50 |           54.50 |            1.0
+ pix             |  19 |        2660.45 |            8.55 |            1.0
+ credito         |  13 |        1828.00 |            0.00 |            1.5
+ dinheiro        |   3 |         670.00 |           10.00 |            1.0
+ debito          |   6 |         510.00 |            0.00 |            1.0
 (4 rows)
 
 ==============================================================================
@@ -227,27 +203,17 @@ HAVING SUM(v.quantidade) >= 3
 ORDER BY pr.categoria, unidades DESC;
    categoria   |               produto               |         marca         | unidades | receita 
 ---------------+-------------------------------------+-----------------------+----------+---------
- Barba         | Balm para Barba 60g                 | Barba Brava           |        4 |  151.62
- Coloração     | Pó Descolorante BlondMe 450g        | Schwarzkopf           |        6 | 1096.20
- Coloração     | Tinta So Pure 6.0                   | Keune                 |        4 |  316.00
- Coloração     | Ox 30 Volumes 900ml                 | Schwarzkopf           |        3 |  126.00
- Condicionador | Condicionador Uso Obrigatório 300ml | Truss                 |        4 |  416.00
- Finalizador   | Óleo Infinite Repair 30ml           | Truss                 |        5 |  436.10
- Finalizador   | Creme para Pentear Cachos 1kg       | Lowell                |        3 |  179.70
- Pele          | Água Micelar 200ml                  | La Roche-Posay        |        6 |  471.41
- Pele          | Hidratante Facial 50g               | Principia             |        6 |  329.40
- Pele          | Protetor Solar Facial FPS 50        | La Roche-Posay        |        3 |  289.71
- Pele          | Hidratante Corporal Urucum 250ml    | Granado               |        3 |  144.71
- Shampoo       | Shampoo Hidra 400ml                 | Elseve                |        6 |  164.61
- Shampoo       | Shampoo Fusion 250ml                | Wella Professionals   |        4 |  569.62
- Tratamento    | Máscara Fusion 150ml                | Wella Professionals   |        6 | 1061.41
- Tratamento    | Máscara Liso Mágico 450g            | Lowell                |        5 |  328.53
- Tratamento    | Máscara Absolut Repair 250g         | L'Oréal Professionnel |        4 |  759.60
- Tratamento    | Máscara Divine Blond 200g           | Braé                  |        3 |  329.70
- Tratamento    | Night Spa 250ml                     | Truss                 |        3 |  548.10
- Unhas         | Óleo de Cutícula 15ml               | Impala                |        5 |   73.01
- Unhas         | Removedor de Esmalte 100ml          | Impala                |        4 |   47.60
-(20 rows)
+ Barba         | Balm para Barba 60g                 | Barba Brava           |        4 |  159.60
+ Coloração     | Koleston Perfect 7/0                | Wella Professionals   |        3 |  128.70
+ Coloração     | Pó Descolorante BlondMe 450g        | Schwarzkopf           |        3 |  529.20
+ Condicionador | Condicionador Uso Obrigatório 300ml | Truss                 |        3 |  312.00
+ Pele          | Sérum Vitamina C 30ml               | Principia             |        3 |  209.70
+ Pele          | Hidratante Facial 50g               | Principia             |        3 |  164.70
+ Pele          | Água Micelar 200ml                  | La Roche-Posay        |        3 |  239.70
+ Tratamento    | Máscara Absolut Repair 250g         | L'Oréal Professionnel |        3 |  569.70
+ Tratamento    | Máscara Fusion 150ml                | Wella Professionals   |        3 |  539.70
+ Unhas         | Esmalte Perolado Rosa               | Impala                |        6 |   53.40
+(10 rows)
 
 ==============================================================================
 CJ05 - Ranking dos 10 clientes que mais gastaram no salão somando
@@ -268,18 +234,18 @@ LEFT JOIN (SELECT v.id_cliente, SUM(v.quantidade * v.valor_unitario) AS total_pr
 WHERE sv.total_servicos IS NOT NULL OR pd.total_produtos IS NOT NULL
 ORDER BY gasto_total DESC
 LIMIT 10;
-      cliente       | gasto_servicos | gasto_produtos | gasto_total 
---------------------+----------------+----------------+-------------
- Felipe Teixeira    |         745.00 |         649.80 |     1394.80
- Mariana Santos     |         951.00 |         359.10 |     1310.10
- Viviane Cavalcanti |        1010.00 |         268.90 |     1278.90
- Patrícia Pinto     |         854.50 |         375.10 |     1229.60
- Camila Machado     |         350.00 |         878.40 |     1228.40
- Sabrina Gomes      |         470.00 |         688.23 |     1158.23
- Isabela Cardoso    |         993.00 |          40.50 |     1033.50
- Daniela Cavalcanti |         495.75 |         421.61 |      917.36
- Mariana Carvalho   |         560.00 |         353.91 |      913.91
- Bruna Carvalho     |         682.75 |         161.91 |      844.66
+     cliente     | gasto_servicos | gasto_produtos | gasto_total 
+-----------------+----------------+----------------+-------------
+ Vitor Batista   |              0 |         737.80 |      737.80
+ Henrique Costa  |         180.00 |         468.90 |      648.90
+ Letícia Moura   |         643.00 |              0 |      643.00
+ Patrícia Pinto  |         350.00 |         259.70 |      609.70
+ Luana Tavares   |              0 |         600.00 |      600.00
+ Carla Mendes    |         398.00 |         199.80 |      597.80
+ Aline Silva     |         590.00 |              0 |      590.00
+ Matheus Tavares |         560.00 |              0 |      560.00
+ Aline Teixeira  |         450.00 |         109.80 |      559.80
+ Lucas Teixeira  |         280.00 |         210.21 |      490.21
 (10 rows)
 
 ==============================================================================
@@ -289,20 +255,31 @@ SELECT id_cliente, nome, telefone, data_cadastro
 FROM cliente
 WHERE id_cliente NOT IN (SELECT id_cliente FROM agendamento)
 ORDER BY nome;
- id_cliente |       nome        |  telefone   | data_cadastro 
-------------+-------------------+-------------+---------------
-         55 | Aline Pereira     | 21989343494 | 2026-08-03
-         12 | Cristina Oliveira | 21985349401 | 2025-10-27
-          6 | Fabio Nogueira    | 21988880006 | 2026-04-02
-         33 | Giovana Duarte    | 21997075332 | 2026-06-22
-         41 | Juliana Rodrigues | 21979153880 | 2026-02-09
-         27 | Letícia Costa     | 21973092666 | 2025-01-20
-         44 | Lucas Teixeira    | 21987425994 | 2025-12-05
-         48 | Patrícia Pereira  | 21995207640 | 2026-07-29
-         38 | Renata Batista    | 21983393488 | 2026-07-20
-         21 | Rodrigo Almeida   | 21970311280 | 2025-10-08
-         19 | Thaís Vieira      | 21983491576 | 2026-08-02
-(11 rows)
+ id_cliente |        nome        |  telefone   | data_cadastro 
+------------+--------------------+-------------+---------------
+         20 | Aline Correia      | 21997007771 | 2026-05-11
+         46 | Ana Oliveira       | 21981087798 | 2026-10-29
+         17 | Caio Vieira        | 21984408592 | 2026-10-05
+         12 | Cristina Oliveira  | 21985349401 | 2025-10-27
+          6 | Fabio Nogueira     | 21988880006 | 2026-04-02
+         33 | Giovana Duarte     | 21997075332 | 2026-06-22
+         40 | Igor Moreira       | 21991664496 | 2025-05-18
+         45 | Isabela Cardoso    | 21998449794 | 2025-04-12
+         41 | Juliana Rodrigues  | 21979153880 | 2026-02-09
+         27 | Letícia Costa      | 21973092666 | 2025-01-20
+         39 | Mariana Santos     | 21999128443 | 2026-04-13
+         47 | Mariana Silva      | 21981801151 | 2025-06-15
+         48 | Patrícia Pereira   | 21995207640 | 2026-07-29
+         38 | Renata Batista     | 21983393488 | 2026-07-20
+         18 | Thaís Siqueira     | 21991027572 | 2025-05-10
+         19 | Thaís Vieira       | 21983491576 | 2026-08-02
+         29 | Vanessa Batista    | 21970172171 | 2025-06-13
+         10 | Vitor Batista      | 21983328404 | 2025-08-09
+         26 | Vitor Oliveira     | 21982419460 | 2026-05-31
+          8 | Viviane Cavalcanti | 21970085055 | 2025-09-08
+         23 | Viviane Teixeira   | 21997110614 | 2026-05-30
+         30 | Viviane Vieira     | 21977480211 | 2026-07-18
+(22 rows)
 
 ==============================================================================
 SQ02 (operador de comparação) - Serviços ativos com preço acima da
@@ -359,34 +336,38 @@ WHERE especialidade <> 'Barbeiro'
 ORDER BY comissao_percentual DESC, nome;
         nome        | especialidade | comissao_percentual 
 --------------------+---------------+---------------------
- Débora Gomes       | Colorista     |               43.00
- Sabrina Correia    | Colorista     |               43.00
- Sabrina Nascimento | Cabeleireira  |               43.00
- Larissa Tavares    | Cabeleireira  |               42.00
- Natália Campos     | Colorista     |               42.00
- Giovana Carvalho   | Cabeleireira  |               40.00
- Giovana Correia    | Cabeleireira  |               40.00
- Gustavo Monteiro   | Cabeleireiro  |               40.00
+ Débora Machado     | Cabeleireira  |               43.00
+ Beatriz Araújo     | Colorista     |               42.00
+ Igor Campos        | Cabeleireiro  |               42.00
+ Leonardo Ribeiro   | Cabeleireiro  |               42.00
+ Tatiane Costa      | Colorista     |               42.00
+ Giovana Correia    | Colorista     |               40.00
  Luana Campos       | Cabeleireira  |               40.00
+ Mariana Ribeiro    | Cabeleireira  |               40.00
  Marina Alves       | Cabeleireira  |               40.00
- Aline Santos       | Maquiadora    |               39.00
- Aline Carvalho     | Esteticista   |               38.00
- Felipe Martins     | Cabeleireiro  |               38.00
- Thaís Gomes        | Cabeleireira  |               38.00
+ Giovana Nascimento | Esteticista   |               38.00
+ Juliana Martins    | Colorista     |               38.00
+ Larissa Campos     | Colorista     |               38.00
+ Mariana Oliveira   | Cabeleireira  |               38.00
+ Paulo Siqueira     | Cabeleireiro  |               38.00
+ Rodrigo Costa      | Cabeleireiro  |               38.00
  Tiago Nunes        | Cabeleireiro  |               38.00
- Vanessa Ribeiro    | Esteticista   |               38.00
  Flávia Duarte      | Cabeleireira  |               36.00
- Lucas Martins      | Cabeleireiro  |               36.00
- Débora Batista     | Manicure      |               35.00
- Débora Oliveira    | Cabeleireira  |               35.00
- Henrique Cardoso   | Cabeleireiro  |               35.00
+ Aline Cavalcanti   | Maquiadora    |               35.00
+ Henrique Silva     | Cabeleireiro  |               35.00
+ Juliana Freitas    | Esteticista   |               35.00
  Letícia Duarte     | Cabeleireira  |               35.00
- Lucas Pinto        | Cabeleireiro  |               35.00
- Mariana Ribeiro    | Esteticista   |               35.00
- Simone Moreira     | Colorista     |               35.00
- Viviane Siqueira   | Colorista     |               35.00
- Cristina Ribeiro   | Manicure      |               34.00
-(27 rows)
+ Luana Cardoso      | Cabeleireira  |               35.00
+ Patrícia Moura     | Depiladora    |               35.00
+ Renata Silva       | Cabeleireira  |               35.00
+ Sabrina Correia    | Manicure      |               35.00
+ Simone Moreira     | Cabeleireira  |               35.00
+ Thaís Gomes        | Maquiadora    |               35.00
+ Vanessa Ribeiro    | Manicure      |               35.00
+ Yasmin Campos      | Manicure      |               35.00
+ Beatriz Batista    | Manicure      |               34.00
+ Larissa Tavares    | Depiladora    |               34.00
+(31 rows)
 
 ==============================================================================
 SQ05 (EXISTS) - Clientes que já tiveram serviço concluído E também
@@ -401,47 +382,22 @@ WHERE EXISTS (SELECT 1
                 FROM venda_produto v
                WHERE v.id_cliente = c.id_cliente)
 ORDER BY c.nome;
- id_cliente |        nome        |             email              
-------------+--------------------+--------------------------------
-         20 | Aline Correia      | aline.correia20@email.com
-         36 | Aline Teixeira     | aline.teixeira36@email.com
-         46 | Ana Oliveira       | ana.oliveira46@email.com
-         34 | Ana Pereira        | ana.pereira34@email.com
-         52 | Bruna Carvalho     | 
-          2 | Bruno Lima         | bruno.lima@email.com
-         24 | Camila Machado     | camila.machado24@email.com
-         57 | Camila Tavares     | camila.tavares57@email.com
-          3 | Carla Mendes       | carla.mendes@email.com
-         51 | Daniela Cavalcanti | daniela.cavalcanti51@email.com
-          4 | Diego Rocha        | diego.rocha@email.com
-         11 | Débora Duarte      | debora.duarte11@email.com
-          5 | Elaine Ferreira    | elaine.f@email.com
-         25 | Felipe Teixeira    | felipe.teixeira25@email.com
-          7 | Helena Siqueira    | helena.siqueira7@email.com
-         37 | Henrique Costa     | henrique.costa37@email.com
-          9 | Isabela Araújo     | isabela.araujo9@email.com
-         45 | Isabela Cardoso    | isabela.cardoso45@email.com
-         31 | Juliana Monteiro   | juliana.monteiro31@email.com
-         50 | Juliana Pereira    | juliana.pereira50@email.com
-         14 | Jéssica Siqueira   | jessica.siqueira14@email.com
-         54 | Leonardo Gomes     | leonardo.gomes54@email.com
-         32 | Luana Tavares      | luana.tavares32@email.com
-         43 | Mariana Carvalho   | mariana.carvalho43@email.com
-         39 | Mariana Santos     | 
-         47 | Mariana Silva      | mariana.silva47@email.com
-         35 | Matheus Tavares    | matheus.tavares35@email.com
-         49 | Patrícia Pinto     | patricia.pinto49@email.com
-         22 | Sabrina Duarte     | sabrina.duarte22@email.com
-         58 | Sabrina Gomes      | sabrina.gomes58@email.com
-         59 | Tatiane Barbosa    | tatiane.barbosa59@email.com
-         53 | Tatiane Oliveira   | tatiane.oliveira53@email.com
-         18 | Thaís Siqueira     | thais.siqueira18@email.com
-         29 | Vanessa Batista    | vanessa.batista29@email.com
-         10 | Vitor Batista      | vitor.batista10@email.com
-         16 | Vitor Cardoso      | vitor.cardoso16@email.com
-         15 | Viviane Barbosa    | viviane.barbosa15@email.com
-          8 | Viviane Cavalcanti | viviane.cavalcanti8@email.com
-         23 | Viviane Teixeira   | viviane.teixeira23@email.com
-         30 | Viviane Vieira     | viviane.vieira30@email.com
-(40 rows)
+ id_cliente |       nome        |             email             
+------------+-------------------+-------------------------------
+         36 | Aline Teixeira    | aline.teixeira36@email.com
+          2 | Bruno Lima        | bruno.lima@email.com
+         24 | Camila Machado    | camila.machado24@email.com
+          3 | Carla Mendes      | carla.mendes@email.com
+         28 | Gabriela Monteiro | gabriela.monteiro28@email.com
+         37 | Henrique Costa    | henrique.costa37@email.com
+          9 | Isabela Araújo    | isabela.araujo9@email.com
+         31 | Juliana Monteiro  | juliana.monteiro31@email.com
+         50 | Juliana Pereira   | juliana.pereira50@email.com
+         14 | Jéssica Siqueira  | jessica.siqueira14@email.com
+         44 | Lucas Teixeira    | lucas.teixeira44@email.com
+         43 | Mariana Carvalho  | mariana.carvalho43@email.com
+         49 | Patrícia Pinto    | patricia.pinto49@email.com
+         21 | Rodrigo Almeida   | rodrigo.almeida21@email.com
+         15 | Viviane Barbosa   | viviane.barbosa15@email.com
+(15 rows)
 

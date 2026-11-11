@@ -1,12 +1,12 @@
 -- Evidência APD1: execução de 02_insercao_dados.sql e contagem de registros por tabela
     tabela     | registros 
 ---------------+-----------
- cliente       |        60
+ cliente       |        50
  profissional  |        50
  servico       |        50
  produto       |        50
- agendamento   |       220
- pagamento     |       159
- venda_produto |        90
+ agendamento   |        50
+ pagamento     |        41
+ venda_produto |        50
 (7 rows)
 

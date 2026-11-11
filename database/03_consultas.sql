@@ -65,7 +65,7 @@ ORDER BY data_admissao;
 -- =====================================================================
 
 -- CJ01 - Faturamento e comissão por profissional (atendimentos
--- concluídos). Mostra só quem faturou mais de R$ 500.
+-- concluídos). Mostra só quem faturou mais de R$ 300.
 -- WHERE filtra as linhas antes de agrupar; HAVING filtra os grupos.
 SELECT p.nome                                                  AS profissional,
        p.especialidade,
@@ -77,7 +77,7 @@ FROM agendamento a
 INNER JOIN profissional p ON p.id_profissional = a.id_profissional
 WHERE a.status = 'concluido'
 GROUP BY p.id_profissional, p.nome, p.especialidade, p.comissao_percentual
-HAVING SUM(a.valor) > 500
+HAVING SUM(a.valor) > 300
 ORDER BY faturamento DESC;
 
 -- CJ02 - Receita por categoria de serviço e por mês (2º semestre de

@@ -32,7 +32,7 @@ BEGIN
 INSERT INTO agendamento (id_cliente, id_profissional, id_servico, data_agendamento, hora, valor, status)
 VALUES (1, 1, 1, '2026-12-01', '10:00', 80.00, 'pendente');
 ERROR:  new row for relation "agendamento" violates check constraint "ck_agendamento_status"
-DETAIL:  Failing row contains (222, 1, 1, 1, 2026-12-01, 10:00, 80.00, pendente).
+DETAIL:  Failing row contains (52, 1, 1, 1, 2026-12-01, 10:00, 80.00, pendente).
 ROLLBACK;
 ROLLBACK
 
@@ -79,7 +79,7 @@ FROM venda_produto
 WHERE id_venda = currval('venda_produto_id_venda_seq');
  id_venda | id_cliente | id_produto | id_profissional 
 ----------+------------+------------+-----------------
-       91 |          1 |          1 |                
+       51 |          1 |          1 |                
 (1 row)
 
 ROLLBACK;
@@ -93,7 +93,7 @@ BEGIN
 SELECT COUNT(*) AS agendamentos_servico_4_antes FROM agendamento WHERE id_servico = 4;
  agendamentos_servico_4_antes 
 ------------------------------
-                            5
+                            2
 (1 row)
 
 UPDATE servico SET id_servico = 1000 WHERE id_servico = 4;
@@ -101,7 +101,7 @@ UPDATE 1
 SELECT COUNT(*) AS agendamentos_servico_1000_depois FROM agendamento WHERE id_servico = 1000;
  agendamentos_servico_1000_depois 
 ----------------------------------
-                                5
+                                2
 (1 row)
 
 ROLLBACK;

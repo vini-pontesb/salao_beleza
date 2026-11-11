@@ -27,7 +27,7 @@ A documentação técnica (template do professor, atualizada a cada APD) está e
 ```
 database/
   01_criacao_tabelas.sql     criação das 7 tabelas e restrições
-  02_insercao_dados.sql      carga de dados de teste (50+ registros por tabela)
+  02_insercao_dados.sql      carga de dados de teste (até 50 registros por tabela)
   03_consultas.sql           5 consultas simples, 5 com JOIN e 5 subconsultas
   04_testes_integridade.sql  testes das restrições (com ROLLBACK)
 docs/
