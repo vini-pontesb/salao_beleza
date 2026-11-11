@@ -32,7 +32,7 @@ export default function App() {
       </main>
 
       <footer className="rodape">
-        Trabalho de Banco de Dados I — IFRJ Niterói · Vinicius Pontes &amp; Jean Macedo
+        Projeto Integrador de Banco de Dados II — IFRJ Niterói · Jean Macedo, Vinícius Pontes &amp; Pietro Borges
       </footer>
     </div>
   );

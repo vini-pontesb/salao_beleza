@@ -1,0 +1,148 @@
+-- Evidência APD1: estrutura física das tabelas (comando \d do psql, PostgreSQL 16 local)
+                                     Table "public.cliente"
+     Column      |  Type   | Collation | Nullable |                   Default                   
+-----------------+---------+-----------+----------+---------------------------------------------
+ id_cliente      | integer |           | not null | nextval('cliente_id_cliente_seq'::regclass)
+ nome            | text    |           | not null | 
+ telefone        | text    |           |          | 
+ email           | text    |           |          | 
+ data_nascimento | date    |           |          | 
+ data_cadastro   | date    |           | not null | CURRENT_DATE
+Indexes:
+    "cliente_pkey" PRIMARY KEY, btree (id_cliente)
+    "cliente_email_key" UNIQUE CONSTRAINT, btree (email)
+Check constraints:
+    "ck_cliente_email" CHECK (email IS NULL OR email ~~ '%_@_%._%'::text)
+    "ck_cliente_nascimento" CHECK (data_nascimento IS NULL OR data_nascimento < data_cadastro)
+Referenced by:
+    TABLE "agendamento" CONSTRAINT "fk_agendamento_cliente" FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON UPDATE CASCADE ON DELETE RESTRICT
+    TABLE "venda_produto" CONSTRAINT "fk_venda_cliente" FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON UPDATE CASCADE ON DELETE RESTRICT
+
+                                            Table "public.profissional"
+       Column        |     Type     | Collation | Nullable |                        Default                        
+---------------------+--------------+-----------+----------+-------------------------------------------------------
+ id_profissional     | integer      |           | not null | nextval('profissional_id_profissional_seq'::regclass)
+ nome                | text         |           | not null | 
+ especialidade       | text         |           |          | 
+ telefone            | text         |           |          | 
+ comissao_percentual | numeric(5,2) |           | not null | 0
+ data_admissao       | date         |           |          | 
+Indexes:
+    "profissional_pkey" PRIMARY KEY, btree (id_profissional)
+Check constraints:
+    "ck_profissional_comissao" CHECK (comissao_percentual >= 0::numeric AND comissao_percentual <= 100::numeric)
+Referenced by:
+    TABLE "agendamento" CONSTRAINT "fk_agendamento_profissional" FOREIGN KEY (id_profissional) REFERENCES profissional(id_profissional) ON UPDATE CASCADE ON DELETE RESTRICT
+    TABLE "venda_produto" CONSTRAINT "fk_venda_profissional" FOREIGN KEY (id_profissional) REFERENCES profissional(id_profissional) ON UPDATE CASCADE ON DELETE SET NULL
+
+                                            Table "public.servico"
+     Column      |         Type          | Collation | Nullable |                   Default                   
+-----------------+-----------------------+-----------+----------+---------------------------------------------
+ id_servico      | integer               |           | not null | nextval('servico_id_servico_seq'::regclass)
+ nome            | text                  |           | not null | 
+ descricao       | text                  |           |          | 
+ categoria       | character varying(30) |           | not null | 'Cabelo'::character varying
+ preco           | numeric(10,2)         |           | not null | 
+ duracao_minutos | integer               |           |          | 
+ ativo           | smallint              |           | not null | 1
+Indexes:
+    "servico_pkey" PRIMARY KEY, btree (id_servico)
+    "servico_nome_key" UNIQUE CONSTRAINT, btree (nome)
+Check constraints:
+    "ck_servico_ativo" CHECK (ativo = ANY (ARRAY[0, 1]))
+    "ck_servico_categoria" CHECK (categoria::text = ANY (ARRAY['Cabelo'::character varying, 'Barba'::character varying, 'Unhas'::character varying, 'Estética'::character varying, 'Maquiagem'::character varying, 'Depilação'::character varying]::text[]))
+    "ck_servico_duracao" CHECK (duracao_minutos IS NULL OR duracao_minutos > 0)
+    "ck_servico_preco" CHECK (preco > 0::numeric)
+Referenced by:
+    TABLE "agendamento" CONSTRAINT "fk_agendamento_servico" FOREIGN KEY (id_servico) REFERENCES servico(id_servico) ON UPDATE CASCADE ON DELETE RESTRICT
+
+                                            Table "public.produto"
+     Column     |          Type          | Collation | Nullable |                   Default                   
+----------------+------------------------+-----------+----------+---------------------------------------------
+ id_produto     | integer                |           | not null | nextval('produto_id_produto_seq'::regclass)
+ nome           | character varying(100) |           | not null | 
+ marca          | character varying(60)  |           | not null | 
+ categoria      | character varying(30)  |           | not null | 
+ preco_venda    | numeric(10,2)          |           | not null | 
+ qtd_estoque    | integer                |           | not null | 0
+ estoque_minimo | integer                |           | not null | 5
+ codigo_barras  | character(13)          |           |          | 
+ ativo          | boolean                |           | not null | true
+Indexes:
+    "produto_pkey" PRIMARY KEY, btree (id_produto)
+    "produto_codigo_barras_key" UNIQUE CONSTRAINT, btree (codigo_barras)
+    "uq_produto_nome_marca" UNIQUE CONSTRAINT, btree (nome, marca)
+Check constraints:
+    "ck_produto_categoria" CHECK (categoria::text = ANY (ARRAY['Shampoo'::character varying, 'Condicionador'::character varying, 'Tratamento'::character varying, 'Finalizador'::character varying, 'Coloração'::character varying, 'Unhas'::character varying, 'Pele'::character varying, 'Barba'::character varying]::text[]))
+    "ck_produto_estoque" CHECK (qtd_estoque >= 0 AND estoque_minimo >= 0)
+    "ck_produto_preco" CHECK (preco_venda > 0::numeric)
+Referenced by:
+    TABLE "venda_produto" CONSTRAINT "fk_venda_produto" FOREIGN KEY (id_produto) REFERENCES produto(id_produto) ON UPDATE CASCADE ON DELETE RESTRICT
+
+                                          Table "public.agendamento"
+      Column      |     Type      | Collation | Nullable |                       Default                       
+------------------+---------------+-----------+----------+-----------------------------------------------------
+ id_agendamento   | integer       |           | not null | nextval('agendamento_id_agendamento_seq'::regclass)
+ id_cliente       | integer       |           | not null | 
+ id_profissional  | integer       |           | not null | 
+ id_servico       | integer       |           | not null | 
+ data_agendamento | date          |           | not null | 
+ hora             | text          |           |          | 
+ valor            | numeric(10,2) |           |          | 
+ status           | text          |           | not null | 'agendado'::text
+Indexes:
+    "agendamento_pkey" PRIMARY KEY, btree (id_agendamento)
+    "uq_agendamento_horario_profissional" UNIQUE, btree (id_profissional, data_agendamento, hora) WHERE status <> 'cancelado'::text
+Check constraints:
+    "ck_agendamento_hora" CHECK (hora IS NULL OR hora ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'::text)
+    "ck_agendamento_status" CHECK (status = ANY (ARRAY['agendado'::text, 'concluido'::text, 'cancelado'::text]))
+    "ck_agendamento_valor" CHECK (valor IS NULL OR valor >= 0::numeric)
+Foreign-key constraints:
+    "fk_agendamento_cliente" FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON UPDATE CASCADE ON DELETE RESTRICT
+    "fk_agendamento_profissional" FOREIGN KEY (id_profissional) REFERENCES profissional(id_profissional) ON UPDATE CASCADE ON DELETE RESTRICT
+    "fk_agendamento_servico" FOREIGN KEY (id_servico) REFERENCES servico(id_servico) ON UPDATE CASCADE ON DELETE RESTRICT
+Referenced by:
+    TABLE "pagamento" CONSTRAINT "fk_pagamento_agendamento" FOREIGN KEY (id_agendamento) REFERENCES agendamento(id_agendamento) ON UPDATE CASCADE ON DELETE RESTRICT
+
+                                                  Table "public.pagamento"
+       Column        |            Type             | Collation | Nullable |                     Default                     
+---------------------+-----------------------------+-----------+----------+-------------------------------------------------
+ id_pagamento        | integer                     |           | not null | nextval('pagamento_id_pagamento_seq'::regclass)
+ id_agendamento      | integer                     |           | not null | 
+ forma_pagamento     | character varying(20)       |           | not null | 
+ valor_pago          | numeric(10,2)               |           | not null | 
+ desconto            | numeric(10,2)               |           | not null | 0
+ parcelas            | smallint                    |           | not null | 1
+ data_hora_pagamento | timestamp without time zone |           | not null | CURRENT_TIMESTAMP
+Indexes:
+    "pagamento_pkey" PRIMARY KEY, btree (id_pagamento)
+    "pagamento_id_agendamento_key" UNIQUE CONSTRAINT, btree (id_agendamento)
+Check constraints:
+    "ck_pagamento_forma" CHECK (forma_pagamento::text = ANY (ARRAY['dinheiro'::character varying, 'pix'::character varying, 'debito'::character varying, 'credito'::character varying]::text[]))
+    "ck_pagamento_parcelas" CHECK (parcelas >= 1 AND parcelas <= 6 AND (forma_pagamento::text = 'credito'::text OR parcelas = 1))
+    "ck_pagamento_valor" CHECK (valor_pago > 0::numeric AND desconto >= 0::numeric)
+Foreign-key constraints:
+    "fk_pagamento_agendamento" FOREIGN KEY (id_agendamento) REFERENCES agendamento(id_agendamento) ON UPDATE CASCADE ON DELETE RESTRICT
+
+                                              Table "public.venda_produto"
+     Column      |            Type             | Collation | Nullable |                     Default                     
+-----------------+-----------------------------+-----------+----------+-------------------------------------------------
+ id_venda        | integer                     |           | not null | nextval('venda_produto_id_venda_seq'::regclass)
+ id_cliente      | integer                     |           | not null | 
+ id_produto      | integer                     |           | not null | 
+ id_profissional | integer                     |           |          | 
+ quantidade      | smallint                    |           | not null | 1
+ valor_unitario  | numeric(10,2)               |           | not null | 
+ forma_pagamento | character varying(20)       |           | not null | 
+ data_venda      | timestamp without time zone |           | not null | CURRENT_TIMESTAMP
+Indexes:
+    "venda_produto_pkey" PRIMARY KEY, btree (id_venda)
+Check constraints:
+    "ck_venda_forma" CHECK (forma_pagamento::text = ANY (ARRAY['dinheiro'::character varying, 'pix'::character varying, 'debito'::character varying, 'credito'::character varying]::text[]))
+    "ck_venda_quantidade" CHECK (quantidade > 0)
+    "ck_venda_valor" CHECK (valor_unitario > 0::numeric)
+Foreign-key constraints:
+    "fk_venda_cliente" FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON UPDATE CASCADE ON DELETE RESTRICT
+    "fk_venda_produto" FOREIGN KEY (id_produto) REFERENCES produto(id_produto) ON UPDATE CASCADE ON DELETE RESTRICT
+    "fk_venda_profissional" FOREIGN KEY (id_profissional) REFERENCES profissional(id_profissional) ON UPDATE CASCADE ON DELETE SET NULL
+

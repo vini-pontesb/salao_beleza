@@ -1,0 +1,447 @@
+-- Evidência APD1: execução de database/03_consultas.sql
+Base: PostgreSQL 16 local, com os mesmos scripts versionados em database/
+
+==============================================================================
+CS01 - Buscar clientes pelo nome (busca sem diferenciar maiúsculas).
+==============================================================================
+SELECT id_cliente, nome, telefone, email
+FROM cliente
+WHERE nome ILIKE '%ana%'
+ORDER BY nome;
+ id_cliente |       nome        |  telefone   |             email             
+------------+-------------------+-------------+-------------------------------
+         46 | Ana Oliveira      | 21981087798 | ana.oliveira46@email.com
+         34 | Ana Pereira       | 21971723871 | ana.pereira34@email.com
+          1 | Ana Souza         | 21988880001 | ana.souza@email.com
+         33 | Giovana Duarte    | 21997075332 | giovana.duarte33@email.com
+         31 | Juliana Monteiro  | 21972833108 | juliana.monteiro31@email.com
+         50 | Juliana Pereira   | 21984631506 | juliana.pereira50@email.com
+         41 | Juliana Rodrigues | 21979153880 | juliana.rodrigues41@email.com
+         32 | Luana Tavares     | 21980267801 | luana.tavares32@email.com
+         43 | Mariana Carvalho  | 21996180780 | mariana.carvalho43@email.com
+         39 | Mariana Santos    | 21999128443 | 
+         47 | Mariana Silva     | 21981801151 | mariana.silva47@email.com
+(11 rows)
+
+==============================================================================
+CS02 - Serviços ativos com preço entre R$ 50 e R$ 150, do mais barato
+==============================================================================
+SELECT nome, categoria, preco, duracao_minutos
+FROM servico
+WHERE ativo = 1
+  AND preco BETWEEN 50 AND 150
+ORDER BY preco, nome;
+          nome           | categoria | preco  | duracao_minutos 
+-------------------------+-----------+--------+-----------------
+ Corte Masculino         | Cabelo    |  50.00 |              40
+ Depilação Meia Perna    | Depilação |  50.00 |              30
+ Pedicure                | Unhas     |  50.00 |              50
+ Depilação Virilha       | Depilação |  55.00 |              30
+ Design com Henna        | Estética  |  55.00 |              40
+ Escova Simples          | Cabelo    |  55.00 |              45
+ Pigmentação de Barba    | Barba     |  60.00 |              40
+ Esmaltação em Gel       | Unhas     |  70.00 |              60
+ Spa dos Pés             | Unhas     |  75.00 |              60
+ Corte + Barba           | Cabelo    |  80.00 |              60
+ Corte Feminino          | Cabelo    |  80.00 |              60
+ Depilação Perna Inteira | Depilação |  80.00 |              50
+ Mão e Pé                | Unhas     |  85.00 |              90
+ Hidratação              | Cabelo    |  90.00 |              45
+ Manutenção de Fibra     | Unhas     | 110.00 |              90
+ Matização               | Cabelo    | 110.00 |              60
+ Brow Lamination         | Estética  | 120.00 |              60
+ Retoque de Raiz         | Cabelo    | 120.00 |              90
+ Lash Lifting            | Estética  | 130.00 |              60
+ Drenagem Linfática      | Estética  | 140.00 |              60
+ Reconstrução Capilar    | Cabelo    | 140.00 |              60
+ Limpeza de Pele         | Estética  | 150.00 |              90
+ Maquiagem Social        | Maquiagem | 150.00 |              60
+ Penteado                | Cabelo    | 150.00 |              60
+(24 rows)
+
+==============================================================================
+CS03 - Produtos ativos com estoque igual ou abaixo do mínimo.
+==============================================================================
+SELECT id_produto, nome, marca, qtd_estoque, estoque_minimo
+FROM produto
+WHERE ativo = TRUE
+  AND qtd_estoque <= estoque_minimo
+ORDER BY qtd_estoque, nome;
+ id_produto |             nome             |   marca   | qtd_estoque | estoque_minimo 
+------------+------------------------------+-----------+-------------+----------------
+         45 | Gel Fixador 300g             | Bozzano   |           0 |              8
+         18 | Bond Angel Leave-in 120ml    | Braé      |           1 |              5
+         36 | Sabonete Facial Antiacne 90g | Granado   |           1 |              8
+         27 | Esmalte Cremoso Vermelho     | Risqué    |           2 |              5
+          9 | Shampoo Elixir Ultime 250ml  | Kérastase |           2 |              5
+(5 rows)
+
+==============================================================================
+CS04 - Clientes que fazem aniversário em dezembro, com a idade que
+==============================================================================
+SELECT nome,
+       telefone,
+       data_nascimento,
+       EXTRACT(YEAR FROM AGE(DATE '2026-12-31', data_nascimento)) AS idade_em_dezembro
+FROM cliente
+WHERE EXTRACT(MONTH FROM data_nascimento) = 12
+ORDER BY EXTRACT(DAY FROM data_nascimento);
+        nome        |  telefone   | data_nascimento | idade_em_dezembro 
+--------------------+-------------+-----------------+-------------------
+ Sabrina Duarte     | 21976705436 | 2005-12-01      |                21
+ Ana Pereira        | 21971723871 | 1996-12-06      |                30
+ Daniela Cavalcanti | 21991674297 | 1993-12-17      |                33
+(3 rows)
+
+==============================================================================
+CS05 - Profissionais cabeleireiros(as) ou coloristas com comissão
+==============================================================================
+SELECT nome, especialidade, comissao_percentual, data_admissao
+FROM profissional
+WHERE especialidade IN ('Cabeleireira', 'Cabeleireiro', 'Colorista')
+  AND comissao_percentual > 38
+ORDER BY data_admissao;
+        nome        | especialidade | comissao_percentual | data_admissao 
+--------------------+---------------+---------------------+---------------
+ Natália Campos     | Colorista     |               42.00 | 2019-04-08
+ Luana Campos       | Cabeleireira  |               40.00 | 2019-06-29
+ Gustavo Monteiro   | Cabeleireiro  |               40.00 | 2021-12-11
+ Giovana Carvalho   | Cabeleireira  |               40.00 | 2022-07-17
+ Larissa Tavares    | Cabeleireira  |               42.00 | 2023-08-21
+ Marina Alves       | Cabeleireira  |               40.00 | 2024-06-01
+ Sabrina Correia    | Colorista     |               43.00 | 2024-06-23
+ Giovana Correia    | Cabeleireira  |               40.00 | 2026-05-21
+ Sabrina Nascimento | Cabeleireira  |               43.00 | 2026-11-03
+ Débora Gomes       | Colorista     |               43.00 | 2026-11-04
+(10 rows)
+
+==============================================================================
+CJ01 - Faturamento e comissão por profissional (atendimentos
+==============================================================================
+SELECT p.nome                                                  AS profissional,
+       p.especialidade,
+       COUNT(*)                                                AS atendimentos,
+       SUM(a.valor)                                            AS faturamento,
+       ROUND(AVG(a.valor), 2)                                  AS ticket_medio,
+       ROUND(SUM(a.valor) * p.comissao_percentual / 100, 2)    AS comissao
+FROM agendamento a
+INNER JOIN profissional p ON p.id_profissional = a.id_profissional
+WHERE a.status = 'concluido'
+GROUP BY p.id_profissional, p.nome, p.especialidade, p.comissao_percentual
+HAVING SUM(a.valor) > 500
+ORDER BY faturamento DESC;
+   profissional   | especialidade | atendimentos | faturamento | ticket_medio | comissao 
+------------------+---------------+--------------+-------------+--------------+----------
+ Thaís Gomes      | Cabeleireira  |            6 |     1600.00 |       266.67 |   608.00
+ Simone Moreira   | Colorista     |            7 |     1434.00 |       204.86 |   501.90
+ Tiago Nunes      | Cabeleireiro  |            6 |     1135.00 |       189.17 |   431.30
+ Beatriz Correia  | Maquiadora    |            3 |     1050.00 |       350.00 |   346.50
+ Aline Santos     | Maquiadora    |            4 |      950.00 |       237.50 |   370.50
+ Lucas Martins    | Cabeleireiro  |            5 |      930.00 |       186.00 |   334.80
+ Marina Alves     | Cabeleireira  |            5 |      820.00 |       164.00 |   328.00
+ Giovana Carvalho | Cabeleireira  |            4 |      765.00 |       191.25 |   306.00
+ Flávia Duarte    | Cabeleireira  |            3 |      692.00 |       230.67 |   249.12
+ Lucas Pinto      | Cabeleireiro  |            2 |      662.00 |       331.00 |   231.70
+ Felipe Martins   | Cabeleireiro  |            4 |      655.00 |       163.75 |   248.90
+ Larissa Tavares  | Cabeleireira  |            3 |      655.00 |       218.33 |   275.10
+ Luana Campos     | Cabeleireira  |            5 |      635.00 |       127.00 |   254.00
+ Débora Oliveira  | Cabeleireira  |            2 |      560.00 |       280.00 |   196.00
+(14 rows)
+
+==============================================================================
+CJ02 - Receita por categoria de serviço e por mês (2º semestre de
+==============================================================================
+SELECT TO_CHAR(DATE_TRUNC('month', pg.data_hora_pagamento), 'YYYY-MM') AS mes,
+       s.categoria,
+       COUNT(*)                                                        AS qtd_pagamentos,
+       SUM(pg.valor_pago)                                              AS receita
+FROM pagamento pg
+INNER JOIN agendamento a ON a.id_agendamento = pg.id_agendamento
+INNER JOIN servico     s ON s.id_servico     = a.id_servico
+WHERE pg.data_hora_pagamento >= '2026-07-01'
+GROUP BY DATE_TRUNC('month', pg.data_hora_pagamento), s.categoria
+ORDER BY mes, receita DESC;
+   mes   | categoria | qtd_pagamentos | receita 
+---------+-----------+----------------+---------
+ 2026-07 | Cabelo    |             11 |  927.60
+ 2026-07 | Maquiagem |              2 |  592.50
+ 2026-07 | Unhas     |              6 |  462.50
+ 2026-07 | Estética  |              2 |  300.00
+ 2026-07 | Depilação |              3 |  148.00
+ 2026-07 | Barba     |              2 |  117.00
+ 2026-08 | Cabelo    |             12 | 2452.50
+ 2026-08 | Maquiagem |              3 |  840.00
+ 2026-08 | Estética  |              2 |  380.00
+ 2026-08 | Unhas     |              5 |  315.00
+ 2026-08 | Depilação |              2 |  129.50
+ 2026-08 | Barba     |              1 |   57.00
+ 2026-09 | Cabelo    |             14 | 2122.00
+ 2026-09 | Maquiagem |              1 |  450.00
+ 2026-09 | Estética  |              2 |  310.00
+ 2026-09 | Unhas     |              2 |  156.25
+ 2026-09 | Depilação |              3 |  122.50
+ 2026-10 | Cabelo    |             10 | 1091.00
+ 2026-10 | Estética  |              3 |  450.00
+ 2026-10 | Unhas     |              4 |  247.25
+ 2026-10 | Maquiagem |              1 |  150.00
+ 2026-10 | Depilação |              4 |  139.77
+ 2026-10 | Barba     |              2 |   94.00
+ 2026-11 | Unhas     |              2 |  237.00
+ 2026-11 | Estética  |              1 |   40.00
+ 2026-11 | Depilação |              1 |   18.00
+(26 rows)
+
+==============================================================================
+CJ03 - Uso de cada forma de pagamento nos serviços: quantidade,
+==============================================================================
+SELECT pg.forma_pagamento,
+       COUNT(*)                     AS qtd,
+       SUM(pg.valor_pago)           AS total_recebido,
+       SUM(pg.desconto)             AS total_descontos,
+       ROUND(AVG(pg.parcelas), 1)   AS media_parcelas
+FROM pagamento pg
+INNER JOIN agendamento a ON a.id_agendamento = pg.id_agendamento
+WHERE a.status = 'concluido'
+GROUP BY pg.forma_pagamento
+ORDER BY total_recebido DESC;
+ forma_pagamento | qtd | total_recebido | total_descontos | media_parcelas 
+-----------------+-----+----------------+-----------------+----------------
+ pix             |  67 |        8221.87 |           80.63 |            1.0
+ credito         |  49 |        5875.50 |            0.00 |            1.2
+ debito          |  28 |        4058.20 |            0.00 |            1.0
+ dinheiro        |  15 |        2015.50 |           54.50 |            1.0
+(4 rows)
+
+==============================================================================
+CJ04 - Produtos mais vendidos por categoria: unidades e receita.
+==============================================================================
+SELECT pr.categoria,
+       pr.nome                                   AS produto,
+       pr.marca,
+       SUM(v.quantidade)                         AS unidades,
+       SUM(v.quantidade * v.valor_unitario)      AS receita
+FROM venda_produto v
+INNER JOIN produto pr ON pr.id_produto = v.id_produto
+GROUP BY pr.categoria, pr.id_produto, pr.nome, pr.marca
+HAVING SUM(v.quantidade) >= 3
+ORDER BY pr.categoria, unidades DESC;
+   categoria   |               produto               |         marca         | unidades | receita 
+---------------+-------------------------------------+-----------------------+----------+---------
+ Barba         | Balm para Barba 60g                 | Barba Brava           |        4 |  151.62
+ Coloração     | Pó Descolorante BlondMe 450g        | Schwarzkopf           |        6 | 1096.20
+ Coloração     | Tinta So Pure 6.0                   | Keune                 |        4 |  316.00
+ Coloração     | Ox 30 Volumes 900ml                 | Schwarzkopf           |        3 |  126.00
+ Condicionador | Condicionador Uso Obrigatório 300ml | Truss                 |        4 |  416.00
+ Finalizador   | Óleo Infinite Repair 30ml           | Truss                 |        5 |  436.10
+ Finalizador   | Creme para Pentear Cachos 1kg       | Lowell                |        3 |  179.70
+ Pele          | Água Micelar 200ml                  | La Roche-Posay        |        6 |  471.41
+ Pele          | Hidratante Facial 50g               | Principia             |        6 |  329.40
+ Pele          | Protetor Solar Facial FPS 50        | La Roche-Posay        |        3 |  289.71
+ Pele          | Hidratante Corporal Urucum 250ml    | Granado               |        3 |  144.71
+ Shampoo       | Shampoo Hidra 400ml                 | Elseve                |        6 |  164.61
+ Shampoo       | Shampoo Fusion 250ml                | Wella Professionals   |        4 |  569.62
+ Tratamento    | Máscara Fusion 150ml                | Wella Professionals   |        6 | 1061.41
+ Tratamento    | Máscara Liso Mágico 450g            | Lowell                |        5 |  328.53
+ Tratamento    | Máscara Absolut Repair 250g         | L'Oréal Professionnel |        4 |  759.60
+ Tratamento    | Máscara Divine Blond 200g           | Braé                  |        3 |  329.70
+ Tratamento    | Night Spa 250ml                     | Truss                 |        3 |  548.10
+ Unhas         | Óleo de Cutícula 15ml               | Impala                |        5 |   73.01
+ Unhas         | Removedor de Esmalte 100ml          | Impala                |        4 |   47.60
+(20 rows)
+
+==============================================================================
+CJ05 - Ranking dos 10 clientes que mais gastaram no salão somando
+==============================================================================
+SELECT c.nome                                             AS cliente,
+       COALESCE(sv.total_servicos, 0)                     AS gasto_servicos,
+       COALESCE(pd.total_produtos, 0)                     AS gasto_produtos,
+       COALESCE(sv.total_servicos, 0)
+         + COALESCE(pd.total_produtos, 0)                 AS gasto_total
+FROM cliente c
+LEFT JOIN (SELECT a.id_cliente, SUM(pg.valor_pago) AS total_servicos
+             FROM agendamento a
+             INNER JOIN pagamento pg ON pg.id_agendamento = a.id_agendamento
+            GROUP BY a.id_cliente) sv ON sv.id_cliente = c.id_cliente
+LEFT JOIN (SELECT v.id_cliente, SUM(v.quantidade * v.valor_unitario) AS total_produtos
+             FROM venda_produto v
+            GROUP BY v.id_cliente) pd ON pd.id_cliente = c.id_cliente
+WHERE sv.total_servicos IS NOT NULL OR pd.total_produtos IS NOT NULL
+ORDER BY gasto_total DESC
+LIMIT 10;
+      cliente       | gasto_servicos | gasto_produtos | gasto_total 
+--------------------+----------------+----------------+-------------
+ Felipe Teixeira    |         745.00 |         649.80 |     1394.80
+ Mariana Santos     |         951.00 |         359.10 |     1310.10
+ Viviane Cavalcanti |        1010.00 |         268.90 |     1278.90
+ Patrícia Pinto     |         854.50 |         375.10 |     1229.60
+ Camila Machado     |         350.00 |         878.40 |     1228.40
+ Sabrina Gomes      |         470.00 |         688.23 |     1158.23
+ Isabela Cardoso    |         993.00 |          40.50 |     1033.50
+ Daniela Cavalcanti |         495.75 |         421.61 |      917.36
+ Mariana Carvalho   |         560.00 |         353.91 |      913.91
+ Bruna Carvalho     |         682.75 |         161.91 |      844.66
+(10 rows)
+
+==============================================================================
+SQ01 (NOT IN) - Clientes que nunca agendaram serviço.
+==============================================================================
+SELECT id_cliente, nome, telefone, data_cadastro
+FROM cliente
+WHERE id_cliente NOT IN (SELECT id_cliente FROM agendamento)
+ORDER BY nome;
+ id_cliente |       nome        |  telefone   | data_cadastro 
+------------+-------------------+-------------+---------------
+         55 | Aline Pereira     | 21989343494 | 2026-08-03
+         12 | Cristina Oliveira | 21985349401 | 2025-10-27
+          6 | Fabio Nogueira    | 21988880006 | 2026-04-02
+         33 | Giovana Duarte    | 21997075332 | 2026-06-22
+         41 | Juliana Rodrigues | 21979153880 | 2026-02-09
+         27 | Letícia Costa     | 21973092666 | 2025-01-20
+         44 | Lucas Teixeira    | 21987425994 | 2025-12-05
+         48 | Patrícia Pereira  | 21995207640 | 2026-07-29
+         38 | Renata Batista    | 21983393488 | 2026-07-20
+         21 | Rodrigo Almeida   | 21970311280 | 2025-10-08
+         19 | Thaís Vieira      | 21983491576 | 2026-08-02
+(11 rows)
+
+==============================================================================
+SQ02 (operador de comparação) - Serviços ativos com preço acima da
+==============================================================================
+SELECT nome, categoria, preco
+FROM servico
+WHERE ativo = 1
+  AND preco > (SELECT AVG(preco) FROM servico WHERE ativo = 1)
+ORDER BY preco DESC;
+         nome         | categoria | preco  
+----------------------+-----------+--------
+ Maquiagem de Noiva   | Maquiagem | 450.00
+ Balayage             | Cabelo    | 380.00
+ Tranças Box Braids   | Cabelo    | 350.00
+ Luzes                | Cabelo    | 320.00
+ Escova Progressiva   | Cabelo    | 280.00
+ Platinado Masculino  | Cabelo    | 220.00
+ Automaquiagem        | Maquiagem | 200.00
+ Botox Capilar        | Cabelo    | 200.00
+ Extensão de Cílios   | Estética  | 200.00
+ Coloração            | Cabelo    | 180.00
+ Alongamento em Fibra | Unhas     | 180.00
+ Peeling Facial       | Estética  | 180.00
+ Cauterização         | Cabelo    | 160.00
+ Limpeza de Pele      | Estética  | 150.00
+ Maquiagem Social     | Maquiagem | 150.00
+ Penteado             | Cabelo    | 150.00
+ Drenagem Linfática   | Estética  | 140.00
+ Reconstrução Capilar | Cabelo    | 140.00
+ Lash Lifting         | Estética  | 130.00
+(19 rows)
+
+==============================================================================
+SQ03 (ALL) - Produto(s) com o maior preço de venda dentro da
+==============================================================================
+SELECT nome, marca, preco_venda
+FROM produto
+WHERE categoria = 'Shampoo'
+  AND preco_venda >= ALL (SELECT preco_venda FROM produto WHERE categoria = 'Shampoo');
+            nome             |   marca   | preco_venda 
+-----------------------------+-----------+-------------
+ Shampoo Elixir Ultime 250ml | Kérastase |      239.00
+(1 row)
+
+==============================================================================
+SQ04 (ANY) - Profissionais (exceto barbeiros) cuja comissão é maior
+==============================================================================
+SELECT nome, especialidade, comissao_percentual
+FROM profissional
+WHERE especialidade <> 'Barbeiro'
+  AND comissao_percentual > ANY (SELECT comissao_percentual
+                                   FROM profissional
+                                  WHERE especialidade = 'Barbeiro')
+ORDER BY comissao_percentual DESC, nome;
+        nome        | especialidade | comissao_percentual 
+--------------------+---------------+---------------------
+ Débora Gomes       | Colorista     |               43.00
+ Sabrina Correia    | Colorista     |               43.00
+ Sabrina Nascimento | Cabeleireira  |               43.00
+ Larissa Tavares    | Cabeleireira  |               42.00
+ Natália Campos     | Colorista     |               42.00
+ Giovana Carvalho   | Cabeleireira  |               40.00
+ Giovana Correia    | Cabeleireira  |               40.00
+ Gustavo Monteiro   | Cabeleireiro  |               40.00
+ Luana Campos       | Cabeleireira  |               40.00
+ Marina Alves       | Cabeleireira  |               40.00
+ Aline Santos       | Maquiadora    |               39.00
+ Aline Carvalho     | Esteticista   |               38.00
+ Felipe Martins     | Cabeleireiro  |               38.00
+ Thaís Gomes        | Cabeleireira  |               38.00
+ Tiago Nunes        | Cabeleireiro  |               38.00
+ Vanessa Ribeiro    | Esteticista   |               38.00
+ Flávia Duarte      | Cabeleireira  |               36.00
+ Lucas Martins      | Cabeleireiro  |               36.00
+ Débora Batista     | Manicure      |               35.00
+ Débora Oliveira    | Cabeleireira  |               35.00
+ Henrique Cardoso   | Cabeleireiro  |               35.00
+ Letícia Duarte     | Cabeleireira  |               35.00
+ Lucas Pinto        | Cabeleireiro  |               35.00
+ Mariana Ribeiro    | Esteticista   |               35.00
+ Simone Moreira     | Colorista     |               35.00
+ Viviane Siqueira   | Colorista     |               35.00
+ Cristina Ribeiro   | Manicure      |               34.00
+(27 rows)
+
+==============================================================================
+SQ05 (EXISTS) - Clientes que já tiveram serviço concluído E também
+==============================================================================
+SELECT c.id_cliente, c.nome, c.email
+FROM cliente c
+WHERE EXISTS (SELECT 1
+                FROM agendamento a
+               WHERE a.id_cliente = c.id_cliente
+                 AND a.status = 'concluido')
+  AND EXISTS (SELECT 1
+                FROM venda_produto v
+               WHERE v.id_cliente = c.id_cliente)
+ORDER BY c.nome;
+ id_cliente |        nome        |             email              
+------------+--------------------+--------------------------------
+         20 | Aline Correia      | aline.correia20@email.com
+         36 | Aline Teixeira     | aline.teixeira36@email.com
+         46 | Ana Oliveira       | ana.oliveira46@email.com
+         34 | Ana Pereira        | ana.pereira34@email.com
+         52 | Bruna Carvalho     | 
+          2 | Bruno Lima         | bruno.lima@email.com
+         24 | Camila Machado     | camila.machado24@email.com
+         57 | Camila Tavares     | camila.tavares57@email.com
+          3 | Carla Mendes       | carla.mendes@email.com
+         51 | Daniela Cavalcanti | daniela.cavalcanti51@email.com
+          4 | Diego Rocha        | diego.rocha@email.com
+         11 | Débora Duarte      | debora.duarte11@email.com
+          5 | Elaine Ferreira    | elaine.f@email.com
+         25 | Felipe Teixeira    | felipe.teixeira25@email.com
+          7 | Helena Siqueira    | helena.siqueira7@email.com
+         37 | Henrique Costa     | henrique.costa37@email.com
+          9 | Isabela Araújo     | isabela.araujo9@email.com
+         45 | Isabela Cardoso    | isabela.cardoso45@email.com
+         31 | Juliana Monteiro   | juliana.monteiro31@email.com
+         50 | Juliana Pereira    | juliana.pereira50@email.com
+         14 | Jéssica Siqueira   | jessica.siqueira14@email.com
+         54 | Leonardo Gomes     | leonardo.gomes54@email.com
+         32 | Luana Tavares      | luana.tavares32@email.com
+         43 | Mariana Carvalho   | mariana.carvalho43@email.com
+         39 | Mariana Santos     | 
+         47 | Mariana Silva      | mariana.silva47@email.com
+         35 | Matheus Tavares    | matheus.tavares35@email.com
+         49 | Patrícia Pinto     | patricia.pinto49@email.com
+         22 | Sabrina Duarte     | sabrina.duarte22@email.com
+         58 | Sabrina Gomes      | sabrina.gomes58@email.com
+         59 | Tatiane Barbosa    | tatiane.barbosa59@email.com
+         53 | Tatiane Oliveira   | tatiane.oliveira53@email.com
+         18 | Thaís Siqueira     | thais.siqueira18@email.com
+         29 | Vanessa Batista    | vanessa.batista29@email.com
+         10 | Vitor Batista      | vitor.batista10@email.com
+         16 | Vitor Cardoso      | vitor.cardoso16@email.com
+         15 | Viviane Barbosa    | viviane.barbosa15@email.com
+          8 | Viviane Cavalcanti | viviane.cavalcanti8@email.com
+         23 | Viviane Teixeira   | viviane.teixeira23@email.com
+         30 | Viviane Vieira     | viviane.vieira30@email.com
+(40 rows)
+

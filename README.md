@@ -1,109 +1,87 @@
-# Sistema de Agendamento de Salão de Beleza
+# Sistema de Gestão de Salão de Beleza
 
-Trabalho Prático de **Banco de Dados I** — Bacharelado em Engenharia de
-Computação, IFRJ Campus Niterói.
+Projeto Integrador de **Banco de Dados II** (2026.2), Bacharelado em
+Engenharia de Computação, IFRJ Campus Niterói.
 
-**Grupo:** Vinicius Pontes e Jean Macedo.
+**Equipe:** Jean de Pinho Macedo, Vinícius Pontes Braga e Pietro Gomes Borges.
 
-Aplicação web integrada a um banco de dados relacional (PostgreSQL, no
-Supabase) para gerenciar clientes, profissionais, serviços e agendamentos
-de um salão de beleza.
+Base de dados relacional (PostgreSQL, no Supabase) para um salão de beleza:
+clientes, profissionais, serviços, agendamentos, pagamentos e venda de
+produtos. O repositório também traz a aplicação web que usa essa base.
 
-## Tecnologias
+## Entregas do Projeto Integrador
 
-- **Banco de dados:** PostgreSQL (Supabase), modelo relacional
-- **Back-end:** Node.js + Express + `pg` (SQL explícito, sem ORM)
-- **Front-end:** React (Vite) + CSS
+| APD | Conteúdo | Onde está |
+|---|---|---|
+| APD1 | Base relacional, carga de dados, consultas e subconsultas | `database/`, `docs/`, `evidencias/apd1/` |
+| APD2 | Procedures, functions e triggers | (em breve) |
+| APD3 | Usuários, papéis e privilégios | (em breve) |
+| APD6 | Módulo NoSQL | (em breve) |
+| APD7 | ETL e base analítica | (em breve) |
+
+A documentação técnica (template do professor, atualizada a cada APD) está em
+[`docs/Documentacao_Tecnica_BDII.docx`](docs/Documentacao_Tecnica_BDII.docx).
 
 ## Estrutura
 
 ```
-database/   Scripts SQL (estrutura + dados de teste, e scripts do administrador), versão PostgreSQL
-backend/    API REST em Express
-frontend/   Aplicação React
-docs/       Requisitos e modelo lógico
-CLAUDE.md   Contexto do projeto para o Claude Code
+database/
+  01_criacao_tabelas.sql     criação das 7 tabelas e restrições
+  02_insercao_dados.sql      carga de dados de teste (50+ registros por tabela)
+  03_consultas.sql           5 consultas simples, 5 com JOIN e 5 subconsultas
+  04_testes_integridade.sql  testes das restrições (com ROLLBACK)
+docs/
+  Documentacao_Tecnica_BDII.docx
+  modelo_logico.png          modelo lógico exportado
+  modelo_logico.dot          fonte editável do diagrama (Graphviz)
+evidencias/apd1/             saída da execução dos scripts
+backend/                     API REST (Node.js + Express + pg)
+frontend/                    aplicação React (Vite)
 ```
 
-## Pré-requisitos
+## Base de dados (APD1)
 
-- Node.js 18 ou superior e npm.
-- Um projeto no [Supabase](https://supabase.com) com o schema de
-  `database/schema.sql` já aplicado (SQL Editor).
-- A *connection string* do banco (**Project Settings → Database →
-  Connection pooling**), no formato:
-  `postgresql://postgres.<ref>:<senha>@aws-<n>-<regiao>.pooler.supabase.com:5432/postgres`
+Tabelas: `cliente`, `profissional`, `servico`, `produto`, `agendamento`,
+`pagamento` e `venda_produto`.
 
-## Como instalar e rodar
+![Modelo lógico](docs/modelo_logico.png)
 
-### 1. Banco de dados
-Se o schema ainda não existir no projeto Supabase, rode o conteúdo de
-`database/schema.sql` no SQL Editor (cria as 4 tabelas e insere os dados
-de teste).
+### Como recriar a base
 
-### 2. Back-end
+No **SQL Editor do Supabase** (ou em qualquer PostgreSQL com `psql -f`),
+execute os scripts nesta ordem:
+
+1. `database/01_criacao_tabelas.sql` (**atenção:** apaga e recria as tabelas)
+2. `database/02_insercao_dados.sql` (o SELECT final mostra a contagem por tabela)
+3. `database/03_consultas.sql`
+4. `database/04_testes_integridade.sql` (opcional, um bloco por vez)
+
+Também é possível recriar a base pelo back-end, com `npm run db:init`
+(executa os scripts 01 e 02 na base configurada no `.env`).
+
+## Aplicação web
+
+Pré-requisitos: Node.js 18 ou superior e a *connection string* do Supabase
+(**Project Settings → Database → Connection pooling**), no formato
+`postgresql://postgres.<ref>:<senha>@aws-<n>-<regiao>.pooler.supabase.com:5432/postgres`.
+
 ```bash
 cd backend
 npm install
-cp .env.example .env      # depois edite com a sua DATABASE_URL e a porta
-npm start                 # ou: npm run dev (reinicia sozinho ao salvar)
-```
-A API sobe em `http://localhost:3001`. Para conferir a conexão e as 4
-consultas exigidas direto no terminal, sem precisar do front-end:
-```bash
-npm run db:consultas
-```
-Para resetar os dados de teste no Supabase a partir do zero (**atenção:
-apaga e recria as 4 tabelas**):
-```bash
-npm run db:init
+cp .env.example .env      # edite com a sua DATABASE_URL e a porta
+npm start                 # API em http://localhost:3001
+npm run db:consultas      # roda as consultas de demonstração no terminal
 ```
 
-### Scripts do administrador
-`database/scripts-admin.sql` reúne scripts avulsos para o administrador
-rodar manualmente no **SQL Editor do Supabase** (não são uma tela da
-aplicação): recriação das 4 tabelas, limpeza de todos os dados
-(`TRUNCATE ... RESTART IDENTITY CASCADE`), carga de 5 registros por
-tabela, uma consulta agregada de faturamento por profissional (`INNER
-JOIN` + `COUNT/SUM/AVG` + `GROUP BY` + `HAVING`) e duas subconsultas
-(`>= ALL` para a maior comissão, e `EXISTS` para profissionais com
-agendamento).
-
-### 3. Front-end
 ```bash
 cd frontend
 npm install
-npm run dev
+npm run dev               # normalmente http://localhost:5173
 ```
-Acesse o endereço mostrado pelo Vite (normalmente `http://localhost:5173`).
-As chamadas para `/api/...` são encaminhadas para o back-end (ver
-`frontend/vite.config.js`).
 
-## Telas da aplicação
+Telas: **Clientes** (CRUD), **Agendamentos** (CRUD com cliente,
+profissional e serviço) e **Consultas** (cliente por nome, agenda por
+profissional, agenda por período e clientes que nunca agendaram).
 
-A navegação tem três seções, acessíveis pelo menu no topo:
-
-- **Clientes** — formulário de cadastro/edição (nome, telefone, e-mail,
-  data de nascimento) e a lista de clientes com ações de **Editar** e
-  **Excluir**. Exclusão bloqueada com aviso amigável quando o cliente tem
-  agendamento vinculado (integridade referencial).
-- **Agendamentos** — formulário com seleção de cliente, profissional e
-  serviço (o valor é preenchido automaticamente com o preço do serviço
-  escolhido, mas pode ser ajustado), data, hora e status; abaixo, a agenda
-  completa com nomes já resolvidos via `INNER JOIN` e uma etiqueta colorida
-  por status (agendado / concluído / cancelado).
-- **Consultas** — as 4 consultas exigidas pelo trabalho, cada uma em seu
-  próprio cartão com filtro e botão "Pesquisar": cliente por nome, agenda
-  por profissional, agenda por período de datas e clientes que nunca
-  agendaram (subconsulta `NOT IN`).
-
-## Funcionalidades exigidas
-
-- CRUD completo de **clientes** e **agendamentos**
-- Consulta de cliente por nome
-- Consulta com INNER JOIN (agendamentos por profissional e por período)
-- Consulta com subconsulta NOT IN (clientes sem agendamento)
-- Tratamento de integridade referencial (FK RESTRICT)
-
-Ver detalhes em [`CLAUDE.md`](./CLAUDE.md), [`docs/requisitos.md`](./docs/requisitos.md)
-e o modelo lógico das tabelas em [`docs/modelo-logico.md`](./docs/modelo-logico.md).
+Nunca suba o arquivo `.env` nem senhas para o GitHub. Ele já está no
+`.gitignore`.

@@ -1,7 +1,7 @@
 {
   "name": "salao-agendamento-backend",
   "version": "1.0.0",
-  "description": "Back-end do Sistema de Agendamento de Salão de Beleza (Banco de Dados I - IFRJ Niterói)",
+  "description": "Back-end do Sistema de Gestão de Salão de Beleza (Banco de Dados II - IFRJ Niterói)",
   "type": "commonjs",
   "scripts": {
     "start": "node server.js",
@@ -9,7 +9,7 @@
     "db:init": "node scripts/init-db.js",
     "db:consultas": "node scripts/demo-consultas.js"
   },
-  "author": "Vinicius Pontes e Jean Macedo",
+  "author": "Jean de Pinho Macedo, Vinícius Pontes Braga e Pietro Gomes Borges",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.6",

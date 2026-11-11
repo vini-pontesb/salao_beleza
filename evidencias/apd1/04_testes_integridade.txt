@@ -1,0 +1,109 @@
+-- Evidência APD1: execução de database/04_testes_integridade.sql
+Base: PostgreSQL 16 local, com os mesmos scripts versionados em database/
+
+==============================================================================
+T01 - FK com ON DELETE RESTRICT: excluir cliente que tem agendamento.
+==============================================================================
+BEGIN;
+BEGIN
+DELETE FROM cliente WHERE id_cliente = 1;
+ERROR:  update or delete on table "cliente" violates foreign key constraint "fk_agendamento_cliente" on table "agendamento"
+DETAIL:  Key (id_cliente)=(1) is still referenced from table "agendamento".
+ROLLBACK;
+ROLLBACK
+
+==============================================================================
+T02 - FK: agendamento apontando para cliente inexistente.
+==============================================================================
+BEGIN;
+BEGIN
+INSERT INTO agendamento (id_cliente, id_profissional, id_servico, data_agendamento, hora, valor, status)
+VALUES (9999, 1, 1, '2026-12-01', '10:00', 80.00, 'agendado');
+ERROR:  insert or update on table "agendamento" violates foreign key constraint "fk_agendamento_cliente"
+DETAIL:  Key (id_cliente)=(9999) is not present in table "cliente".
+ROLLBACK;
+ROLLBACK
+
+==============================================================================
+T03 - CHECK: status fora da lista permitida.
+==============================================================================
+BEGIN;
+BEGIN
+INSERT INTO agendamento (id_cliente, id_profissional, id_servico, data_agendamento, hora, valor, status)
+VALUES (1, 1, 1, '2026-12-01', '10:00', 80.00, 'pendente');
+ERROR:  new row for relation "agendamento" violates check constraint "ck_agendamento_status"
+DETAIL:  Failing row contains (222, 1, 1, 1, 2026-12-01, 10:00, 80.00, pendente).
+ROLLBACK;
+ROLLBACK
+
+==============================================================================
+T04 - Índice único parcial: mesmo profissional, mesma data e hora.
+==============================================================================
+BEGIN;
+BEGIN
+INSERT INTO agendamento (id_cliente, id_profissional, id_servico, data_agendamento, hora, valor, status)
+VALUES (2, 1, 1, '2026-12-02', '09:00', 80.00, 'agendado'),
+       (3, 1, 1, '2026-12-02', '09:00', 80.00, 'agendado');
+ERROR:  duplicate key value violates unique constraint "uq_agendamento_horario_profissional"
+DETAIL:  Key (id_profissional, data_agendamento, hora)=(1, 2026-12-02, 09:00) already exists.
+ROLLBACK;
+ROLLBACK
+
+==============================================================================
+T05 - UNIQUE + RESTRICT em pagamento: o agendamento 1 já foi pago,
+==============================================================================
+BEGIN;
+BEGIN
+INSERT INTO pagamento (id_agendamento, forma_pagamento, valor_pago)
+SELECT id_agendamento, 'pix', 10.00 FROM pagamento ORDER BY id_pagamento LIMIT 1;
+ERROR:  duplicate key value violates unique constraint "pagamento_id_agendamento_key"
+DETAIL:  Key (id_agendamento)=(1) already exists.
+ROLLBACK;
+ROLLBACK
+
+==============================================================================
+T06 - FK com ON DELETE SET NULL: ao excluir o profissional que indicou
+==============================================================================
+BEGIN;
+BEGIN
+INSERT INTO profissional (nome, especialidade, comissao_percentual)
+VALUES ('Profissional Teste', 'Cabeleireira', 30);
+INSERT 0 1
+INSERT INTO venda_produto (id_cliente, id_produto, id_profissional, quantidade, valor_unitario, forma_pagamento)
+VALUES (1, 1, currval('profissional_id_profissional_seq'), 1, 129.90, 'pix');
+INSERT 0 1
+DELETE FROM profissional WHERE nome = 'Profissional Teste';
+DELETE 1
+SELECT id_venda, id_cliente, id_produto, id_profissional
+FROM venda_produto
+WHERE id_venda = currval('venda_produto_id_venda_seq');
+ id_venda | id_cliente | id_produto | id_profissional 
+----------+------------+------------+-----------------
+       91 |          1 |          1 |                
+(1 row)
+
+ROLLBACK;
+ROLLBACK
+
+==============================================================================
+T07 - FK com ON UPDATE CASCADE: ao mudar a chave de um serviço, os
+==============================================================================
+BEGIN;
+BEGIN
+SELECT COUNT(*) AS agendamentos_servico_4_antes FROM agendamento WHERE id_servico = 4;
+ agendamentos_servico_4_antes 
+------------------------------
+                            5
+(1 row)
+
+UPDATE servico SET id_servico = 1000 WHERE id_servico = 4;
+UPDATE 1
+SELECT COUNT(*) AS agendamentos_servico_1000_depois FROM agendamento WHERE id_servico = 1000;
+ agendamentos_servico_1000_depois 
+----------------------------------
+                                5
+(1 row)
+
+ROLLBACK;
+ROLLBACK
+

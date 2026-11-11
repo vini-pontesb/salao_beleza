@@ -79,17 +79,30 @@ app.use((err, req, res, next) => {
 
   switch (err.code) {
     // 23503 = foreign_key_violation. Ex.: ON DELETE RESTRICT bloqueou a
-    // exclusão de um cliente/profissional/serviço com agendamento vinculado.
+    // exclusão de um registro que tem agendamento, pagamento ou venda
+    // vinculado, ou foi informado um id que não existe.
     case '23503':
       return res.status(409).json({
-        erro: 'Não é possível excluir: existe(m) agendamento(s) vinculado(s) ' +
-              'a este registro. Exclua os agendamentos primeiro (o histórico ' +
-              'é preservado por integridade referencial).'
+        erro: 'Operação bloqueada pela integridade referencial: existem ' +
+              'agendamentos, pagamentos ou vendas vinculados a este registro ' +
+              '(o histórico é preservado), ou foi informado um registro inexistente.'
       });
-    // 23505 = unique_violation. Ex.: e-mail de cliente repetido.
+    // 23505 = unique_violation. Ex.: e-mail de cliente repetido ou
+    // profissional já ocupado no mesmo dia e horário.
     case '23505':
+      if ((err.constraint || '').includes('horario')) {
+        return res.status(409).json({
+          erro: 'Este profissional já tem um agendamento nesse dia e horário.'
+        });
+      }
       return res.status(409).json({
         erro: 'Já existe um cadastro com esse valor único (ex.: e-mail já usado).'
+      });
+    // 23514 = check_violation. Ex.: status, valor ou hora fora do permitido.
+    case '23514':
+      return res.status(400).json({
+        erro: 'Dados inválidos: algum valor está fora das regras do banco ' +
+              '(ex.: status, valor negativo ou hora fora do formato HH:MM).'
       });
     // 23502 = not_null_violation.
     case '23502':
