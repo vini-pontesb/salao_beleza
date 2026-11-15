@@ -18,10 +18,23 @@
 -- TRUNCATE abaixo zera as tabelas e reinicia as sequências, garantindo
 -- que as chaves estrangeiras apontem para os registros certos.
 -- As tabelas pai são carregadas antes das tabelas filhas.
+--
+-- Triggers (APD2): durante a carga, os triggers de agendamento,
+-- pagamento e venda_produto ficam desligados. Os dados de teste já
+-- representam a situação atual (o estoque carregado já desconta as
+-- vendas), então a baixa de estoque e as validações não devem rodar de
+-- novo sobre eles. Os triggers são religados no fim do script. Se eles
+-- ainda não existirem (base recém-criada pelo 01), os comandos não têm
+-- efeito.
 -- =====================================================================
 
 TRUNCATE TABLE venda_produto, pagamento, agendamento, produto, servico, profissional, cliente
     RESTART IDENTITY CASCADE;
+
+-- Desliga os triggers criados pelo usuário (07_triggers.sql) durante a carga.
+ALTER TABLE agendamento   DISABLE TRIGGER USER;
+ALTER TABLE pagamento     DISABLE TRIGGER USER;
+ALTER TABLE venda_produto DISABLE TRIGGER USER;
 
 -- ---------------------------------------------------------------------
 -- cliente
@@ -400,6 +413,11 @@ INSERT INTO venda_produto (id_cliente, id_produto, id_profissional, quantidade, 
     (16, 48, 42, 1, 26.91, 'credito', '2026-11-03 17:30:00'),
     (46, 22, 40, 1, 159.00, 'dinheiro', '2026-11-04 15:50:00'),
     (10, 13, 33, 2, 179.90, 'debito', '2026-11-09 17:30:00');
+
+-- Religa os triggers depois da carga.
+ALTER TABLE agendamento   ENABLE TRIGGER USER;
+ALTER TABLE pagamento     ENABLE TRIGGER USER;
+ALTER TABLE venda_produto ENABLE TRIGGER USER;
 
 -- =====================================================================
 -- Conferência: quantidade de registros por tabela

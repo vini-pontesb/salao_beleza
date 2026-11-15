@@ -107,6 +107,12 @@ app.use((err, req, res, next) => {
     // 23502 = not_null_violation.
     case '23502':
       return res.status(400).json({ erro: 'Dados inválidos: campo obrigatório em branco.' });
+    // P0001 = raise_exception. Erro lançado pelos triggers e procedures da
+    // base (RAISE EXCEPTION), ex.: conflito de horário, estoque
+    // insuficiente ou pagamento de atendimento não concluído. A mensagem
+    // já vem escrita para o usuário, então é repassada como está.
+    case 'P0001':
+      return res.status(400).json({ erro: err.message });
   }
 
   res.status(500).json({ erro: 'Erro interno do servidor.' });

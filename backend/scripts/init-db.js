@@ -2,7 +2,10 @@
 // scripts/init-db.js
 // (Re)cria o schema no Supabase a partir dos scripts oficiais
 // database/01_criacao_tabelas.sql e database/02_insercao_dados.sql
-// (fonte da verdade do banco) e recarrega os dados de teste.
+// (fonte da verdade do banco), recarrega os dados de teste e recria as
+// functions, procedures e triggers (05, 06 e 07). O 01 apaga as tabelas
+// e, junto com elas, os triggers; por isso os scripts 05 a 07 rodam
+// sempre depois do 01 e do 02.
 //
 // Decisão de migração: mantivemos este script (em vez de removê-lo do
 // fluxo) porque ele é útil para resetar os dados de teste antes da
@@ -18,7 +21,13 @@ const pool = require('../db');
 
 // backend/scripts -> backend -> raiz do projeto -> database/
 const DB_DIR = path.join(__dirname, '..', '..', 'database');
-const SCRIPTS = ['01_criacao_tabelas.sql', '02_insercao_dados.sql'];
+const SCRIPTS = [
+  '01_criacao_tabelas.sql',
+  '02_insercao_dados.sql',
+  '05_functions.sql',
+  '06_procedures.sql',
+  '07_triggers.sql',
+];
 
 async function main() {
   // O protocolo "simple query" do pg aceita múltiplos comandos separados

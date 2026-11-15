@@ -1,0 +1,95 @@
+-- Evidência APD2: criação das functions, procedures e triggers
+Base: PostgreSQL 16 local, com os mesmos scripts versionados em database/
+Ordem de execução: 01 -> 02 -> 05 -> 06 -> 07
+
+==============================================================================
+01_criacao_tabelas.sql
+==============================================================================
+(executado sem erros)
+
+==============================================================================
+02_insercao_dados.sql
+==============================================================================
+    tabela     | registros 
+---------------+-----------
+ cliente       |        50
+ profissional  |        50
+ servico       |        50
+ produto       |        50
+ agendamento   |        50
+ pagamento     |        41
+ venda_produto |        50
+(7 rows)
+
+==============================================================================
+05_functions.sql
+==============================================================================
+CREATE FUNCTION
+COMMENT
+CREATE FUNCTION
+COMMENT
+CREATE FUNCTION
+COMMENT
+
+==============================================================================
+06_procedures.sql
+==============================================================================
+CREATE PROCEDURE
+COMMENT
+CREATE PROCEDURE
+COMMENT
+CREATE PROCEDURE
+COMMENT
+
+==============================================================================
+07_triggers.sql
+==============================================================================
+CREATE FUNCTION
+NOTICE:  trigger "trg_venda_estoque" for relation "venda_produto" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+NOTICE:  trigger "trg_pagamento_valida" for relation "pagamento" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+NOTICE:  trigger "trg_agendamento_regras" for relation "agendamento" does not exist, skipping
+DROP TRIGGER
+CREATE TRIGGER
+
+==============================================================================
+Recarga do 02_insercao_dados.sql com os triggers já criados.
+Esperado: estoque igual antes e depois (a carga não repete a baixa)
+e os 3 triggers ligados ao final.
+==============================================================================
+ id_produto |             nome             | qtd_estoque 
+------------+------------------------------+-------------
+          1 | Shampoo Absolut Repair 300ml |          56
+         13 | Máscara Fusion 150ml         |          16
+         36 | Sabonete Facial Antiacne 90g |           0
+(3 rows)
+
+    tabela     | registros 
+---------------+-----------
+ cliente       |        50
+ profissional  |        50
+ servico       |        50
+ produto       |        50
+ agendamento   |        50
+ pagamento     |        41
+ venda_produto |        50
+(7 rows)
+
+ id_produto |             nome             | qtd_estoque 
+------------+------------------------------+-------------
+          1 | Shampoo Absolut Repair 300ml |          56
+         13 | Máscara Fusion 150ml         |          16
+         36 | Sabonete Facial Antiacne 90g |           0
+(3 rows)
+
+        trigger         |    tabela     | situacao 
+------------------------+---------------+----------
+ trg_agendamento_regras | agendamento   | ligado
+ trg_pagamento_valida   | pagamento     | ligado
+ trg_venda_estoque      | venda_produto | ligado
+(3 rows)

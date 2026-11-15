@@ -9,6 +9,11 @@
 -- Os testes T01 a T05 DEVEM falhar (o erro é a evidência de que a
 -- restrição funciona). Os testes T06 e T07 devem passar.
 --
+-- Revisão APD2: com os triggers do script 07 ativos, o T04 passa a ser
+-- barrado primeiro pelo trg_agendamento_regras, e o T05 deixou de
+-- informar valor_pago (o trg_pagamento_valida calcula o valor), para que
+-- o teste continue chegando à restrição UNIQUE.
+--
 -- No SQL Editor do Supabase, execute um bloco de cada vez.
 -- =====================================================================
 
@@ -33,7 +38,11 @@ VALUES (1, 1, 1, '2026-12-01', '10:00', 80.00, 'pendente');
 ROLLBACK;
 
 -- T04 - Índice único parcial: mesmo profissional, mesma data e hora.
--- Esperado: ERRO (duplicate key ... "uq_agendamento_horario_profissional").
+-- Esperado: ERRO.
+--   Com os triggers da APD2 ativos: "Conflito de horário: o profissional 1 ..."
+--   (o trg_agendamento_regras barra antes, considerando a duração).
+--   Sem os triggers: duplicate key ... "uq_agendamento_horario_profissional".
+-- O índice continua na base como segunda barreira.
 BEGIN;
 INSERT INTO agendamento (id_cliente, id_profissional, id_servico, data_agendamento, hora, valor, status)
 VALUES (2, 1, 1, '2026-12-02', '09:00', 80.00, 'agendado'),
@@ -44,8 +53,8 @@ ROLLBACK;
 -- então um segundo pagamento para ele é recusado.
 -- Esperado: ERRO (duplicate key ... "pagamento_id_agendamento_key").
 BEGIN;
-INSERT INTO pagamento (id_agendamento, forma_pagamento, valor_pago)
-SELECT id_agendamento, 'pix', 10.00 FROM pagamento ORDER BY id_pagamento LIMIT 1;
+INSERT INTO pagamento (id_agendamento, forma_pagamento)
+SELECT id_agendamento, 'pix' FROM pagamento ORDER BY id_pagamento LIMIT 1;
 ROLLBACK;
 
 -- T06 - FK com ON DELETE SET NULL: ao excluir o profissional que indicou
