@@ -1,0 +1,27 @@
+===============================================================================
+APD3 · Base de dados do salão de beleza · 07 · Cópia de segurança (pg_dump com backup_salao) e teste de restauração
+Gerado em: 17/11/2026 21:12:33 (Brasília)
+Banco: PostgreSQL local que reproduz o Supabase (ver database/apd3/ambiente-local/README.md)
+===============================================================================
+A conta de backup só lê. Com RLS ligado, o pg_dump precisa de --enable-row-security; sem a opção, ele se recusa a gerar uma cópia que poderia sair incompleta.
+
+--- 7.1 pg_dump SEM --enable-row-security (recusado de propósito pelo pg_dump)
+pg_dump: error: query failed: ERROR:  query would be affected by row-level security policy for table "agendamento"
+pg_dump: detail: Query was: COPY public.agendamento (id_agendamento, id_cliente, id_profissional, id_servico, data_agendamento, hora, valor, status) TO stdout;
+
+--- 7.2 pg_dump COM --enable-row-security
+OK: cópia gerada (112K)
+
+--- 7.3 Restauração num banco novo e conferência das contagens
+public.cliente                   original=20   restaurado=20   OK
+public.profissional              original=8    restaurado=8    OK
+public.servico                   original=10   restaurado=10   OK
+public.agendamento               original=20   restaurado=20   OK
+public.pagamento                 original=8    restaurado=8    OK
+public.produto                   original=10   restaurado=10   OK
+public.venda_produto             original=15   restaurado=15   OK
+seguranca.usuario_profissional   original=1    restaurado=1    OK
+auditoria.registro_alteracao     original=0    restaurado=0    OK
+
+--- 7.4 backup_salao não consegue alterar nada (sessão somente leitura + sem privilégio)
+ERROR:  cannot execute DELETE in a read-only transaction

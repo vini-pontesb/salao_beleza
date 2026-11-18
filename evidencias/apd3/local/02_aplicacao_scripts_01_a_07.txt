@@ -1,0 +1,412 @@
+===============================================================================
+APD3 · Base de dados do salão de beleza · 02 · Aplicação dos scripts 01 a 07
+Gerado em: 17/11/2026 21:12:28 (Brasília)
+Banco: PostgreSQL local que reproduz o Supabase (ver database/apd3/ambiente-local/README.md)
+===============================================================================
+Cada script roda numa transação (psql -1): ou aplica tudo, ou nada. A tabela no fim de cada um é a evidência do que ele configurou.
+
+
+########## database/apd3/01_perfis_e_usuarios.sql
+DO
+DO
+DO
+CREATE SCHEMA
+COMMENT
+CREATE TABLE
+COMMENT
+CREATE FUNCTION
+COMMENT
+INSERT 0 1
+        papel        |       tipo       |      membro_de      | superusuario | cria_roles | cria_bancos | ignora_rls |    vinculo     |                                                                                               descricao                                                                                               
+---------------------+------------------+---------------------+--------------+------------+-------------+------------+----------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ perfil_auditoria    | perfil (NOLOGIN) | -                   | f            | f          | f           | f          | -              | APD3 | Perfil de auditoria: lê a trilha de alterações e o inventário de privilégios. Nenhum acesso aos dados do negócio.
+ perfil_backup       | perfil (NOLOGIN) | -                   | f            | f          | f           | f          | -              | APD3 | Perfil de cópia de segurança: leitura de todas as tabelas para o pg_dump, sem nenhuma escrita.
+ perfil_gerente      | perfil (NOLOGIN) | -                   | f            | f          | f           | f          | -              | APD3 | Perfil da gerência do salão: cadastra e corrige todos os dados de negócio, define preços e comissões e roda os procedimentos administrativos. Sem DDL, sem TRUNCATE.
+ perfil_profissional | perfil (NOLOGIN) | -                   | f            | f          | f           | f          | -              | APD3 | Perfil dos profissionais: vê e conclui só a própria agenda (RLS) e consulta o catálogo ativo de serviços e produtos.
+ perfil_recepcao     | perfil (NOLOGIN) | -                   | f            | f          | f           | f          | -              | APD3 | Perfil da recepção: atende clientes, marca, remarca e cancela agendamentos, registra pagamentos e vendas (o valor vem sempre do cadastro). Não vê comissão, não exclui nada nem altera preços.
+ perfil_relatorios   | perfil (NOLOGIN) | -                   | f            | f          | f           | f          | -              | APD3 | Perfil de relatórios gerenciais: lê só as views agregadas do schema relatorios. Nenhum dado pessoal.
+ analista_salao      | usuário (LOGIN)  | perfil_relatorios   | f            | f          | f           | f          | -              | APD3 | Conta de consultas e relatórios gerenciais (planilha ou ferramenta de BI).
+ auditor_salao       | usuário (LOGIN)  | perfil_auditoria    | f            | f          | f           | f          | -              | APD3 | Conta de auditoria: revisão periódica da trilha de alterações e dos acessos.
+ backup_salao        | usuário (LOGIN)  | perfil_backup       | f            | f          | f           | f          | -              | APD3 | Conta da rotina de cópia de segurança lógica (pg_dump).
+ gerente_salao       | usuário (LOGIN)  | perfil_gerente      | f            | f          | f           | f          | -              | APD3 | Conta da gerência do salão.
+ profissional_salao  | usuário (LOGIN)  | perfil_profissional | f            | f          | f           | f          | profissional 1 | APD3 | Conta de um profissional; o vínculo com o cadastro fica em seguranca.usuario_profissional.
+ recepcao_salao      | usuário (LOGIN)  | perfil_recepcao     | f            | f          | f           | f          | -              | APD3 | Conta da recepção (sistema de agendamento usado no balcão).
+(12 rows)
+
+
+########## database/apd3/02_integridade.sql
+DO
+SET
+DO
+RESET
+    tabela     |             restricao              |        tipo         | origem | validada |                                                                                                                                                  definicao                                                                                                                                                  
+---------------+------------------------------------+---------------------+--------+----------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ agendamento   | ck_agendamento_concluido_com_valor | verificação (CHECK) | APD3   | t        | CHECK (((status <> 'concluido'::text) OR (valor IS NOT NULL)))
+ cliente       | ck_cliente_nome_preenchido         | verificação (CHECK) | APD3   | t        | CHECK ((btrim(nome) <> ''::text))
+ cliente       | ck_cliente_telefone_formato        | verificação (CHECK) | APD3   | t        | CHECK (((telefone IS NULL) OR (telefone ~ '^[0-9 ()+-]{8,20}$'::text)))
+ produto       | ck_produto_codigo_barras           | verificação (CHECK) | APD3   | t        | CHECK (((codigo_barras IS NULL) OR (codigo_barras ~ '^[0-9]{13}$'::text)))
+ produto       | ck_produto_nome_preenchido         | verificação (CHECK) | APD3   | t        | CHECK (((btrim((nome)::text) <> ''::text) AND (btrim((marca)::text) <> ''::text)))
+ profissional  | ck_profissional_nome_preenchido    | verificação (CHECK) | APD3   | t        | CHECK ((btrim(nome) <> ''::text))
+ profissional  | ck_profissional_telefone_formato   | verificação (CHECK) | APD3   | t        | CHECK (((telefone IS NULL) OR (telefone ~ '^[0-9 ()+-]{8,20}$'::text)))
+ servico       | ck_servico_nome_preenchido         | verificação (CHECK) | APD3   | t        | CHECK ((btrim(nome) <> ''::text))
+ agendamento   | fk_agendamento_cliente             | chave estrangeira   | APD1   | t        | FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON UPDATE CASCADE ON DELETE RESTRICT
+ agendamento   | fk_agendamento_profissional        | chave estrangeira   | APD1   | t        | FOREIGN KEY (id_profissional) REFERENCES profissional(id_profissional) ON UPDATE CASCADE ON DELETE RESTRICT
+ agendamento   | fk_agendamento_servico             | chave estrangeira   | APD1   | t        | FOREIGN KEY (id_servico) REFERENCES servico(id_servico) ON UPDATE CASCADE ON DELETE RESTRICT
+ agendamento   | agendamento_pkey                   | chave primária      | APD1   | t        | PRIMARY KEY (id_agendamento)
+ agendamento   | ck_agendamento_hora                | verificação (CHECK) | APD1   | t        | CHECK (((hora IS NULL) OR (hora ~ '^([01][0-9]|2[0-3]):[0-5][0-9]$'::text)))
+ agendamento   | ck_agendamento_status              | verificação (CHECK) | APD1   | t        | CHECK ((status = ANY (ARRAY['agendado'::text, 'concluido'::text, 'cancelado'::text])))
+ agendamento   | ck_agendamento_valor               | verificação (CHECK) | APD1   | t        | CHECK (((valor IS NULL) OR (valor >= (0)::numeric)))
+ cliente       | cliente_pkey                       | chave primária      | APD1   | t        | PRIMARY KEY (id_cliente)
+ cliente       | ck_cliente_email                   | verificação (CHECK) | APD1   | t        | CHECK (((email IS NULL) OR (email ~~ '%_@_%._%'::text)))
+ cliente       | ck_cliente_nascimento              | verificação (CHECK) | APD1   | t        | CHECK (((data_nascimento IS NULL) OR (data_nascimento < data_cadastro)))
+ cliente       | cliente_email_key                  | única               | APD1   | t        | UNIQUE (email)
+ pagamento     | fk_pagamento_agendamento           | chave estrangeira   | APD1   | t        | FOREIGN KEY (id_agendamento) REFERENCES agendamento(id_agendamento) ON UPDATE CASCADE ON DELETE RESTRICT
+ pagamento     | pagamento_pkey                     | chave primária      | APD1   | t        | PRIMARY KEY (id_pagamento)
+ pagamento     | ck_pagamento_forma                 | verificação (CHECK) | APD1   | t        | CHECK (((forma_pagamento)::text = ANY ((ARRAY['dinheiro'::character varying, 'pix'::character varying, 'debito'::character varying, 'credito'::character varying])::text[])))
+ pagamento     | ck_pagamento_parcelas              | verificação (CHECK) | APD1   | t        | CHECK (((parcelas >= 1) AND (parcelas <= 6) AND (((forma_pagamento)::text = 'credito'::text) OR (parcelas = 1))))
+ pagamento     | ck_pagamento_valor                 | verificação (CHECK) | APD1   | t        | CHECK (((valor_pago > (0)::numeric) AND (desconto >= (0)::numeric)))
+ pagamento     | pagamento_id_agendamento_key       | única               | APD1   | t        | UNIQUE (id_agendamento)
+ produto       | produto_pkey                       | chave primária      | APD1   | t        | PRIMARY KEY (id_produto)
+ produto       | ck_produto_categoria               | verificação (CHECK) | APD1   | t        | CHECK (((categoria)::text = ANY ((ARRAY['Shampoo'::character varying, 'Condicionador'::character varying, 'Tratamento'::character varying, 'Finalizador'::character varying, 'Coloração'::character varying, 'Unhas'::character varying, 'Pele'::character varying, 'Barba'::character varying])::text[])))
+ produto       | ck_produto_estoque                 | verificação (CHECK) | APD1   | t        | CHECK (((qtd_estoque >= 0) AND (estoque_minimo >= 0)))
+ produto       | ck_produto_preco                   | verificação (CHECK) | APD1   | t        | CHECK ((preco_venda > (0)::numeric))
+ produto       | produto_codigo_barras_key          | única               | APD1   | t        | UNIQUE (codigo_barras)
+ produto       | uq_produto_nome_marca              | única               | APD1   | t        | UNIQUE (nome, marca)
+ profissional  | profissional_pkey                  | chave primária      | APD1   | t        | PRIMARY KEY (id_profissional)
+ profissional  | ck_profissional_comissao           | verificação (CHECK) | APD1   | t        | CHECK (((comissao_percentual >= (0)::numeric) AND (comissao_percentual <= (100)::numeric)))
+ servico       | servico_pkey                       | chave primária      | APD1   | t        | PRIMARY KEY (id_servico)
+ servico       | ck_servico_ativo                   | verificação (CHECK) | APD1   | t        | CHECK ((ativo = ANY (ARRAY[0, 1])))
+ servico       | ck_servico_categoria               | verificação (CHECK) | APD1   | t        | CHECK (((categoria)::text = ANY ((ARRAY['Cabelo'::character varying, 'Barba'::character varying, 'Unhas'::character varying, 'Estética'::character varying, 'Maquiagem'::character varying, 'Depilação'::character varying])::text[])))
+ servico       | ck_servico_duracao                 | verificação (CHECK) | APD1   | t        | CHECK (((duracao_minutos IS NULL) OR (duracao_minutos > 0)))
+ servico       | ck_servico_preco                   | verificação (CHECK) | APD1   | t        | CHECK ((preco > (0)::numeric))
+ servico       | servico_nome_key                   | única               | APD1   | t        | UNIQUE (nome)
+ venda_produto | fk_venda_cliente                   | chave estrangeira   | APD1   | t        | FOREIGN KEY (id_cliente) REFERENCES cliente(id_cliente) ON UPDATE CASCADE ON DELETE RESTRICT
+ venda_produto | fk_venda_produto                   | chave estrangeira   | APD1   | t        | FOREIGN KEY (id_produto) REFERENCES produto(id_produto) ON UPDATE CASCADE ON DELETE RESTRICT
+ venda_produto | fk_venda_profissional              | chave estrangeira   | APD1   | t        | FOREIGN KEY (id_profissional) REFERENCES profissional(id_profissional) ON UPDATE CASCADE ON DELETE SET NULL
+ venda_produto | venda_produto_pkey                 | chave primária      | APD1   | t        | PRIMARY KEY (id_venda)
+ venda_produto | ck_venda_forma                     | verificação (CHECK) | APD1   | t        | CHECK (((forma_pagamento)::text = ANY ((ARRAY['dinheiro'::character varying, 'pix'::character varying, 'debito'::character varying, 'credito'::character varying])::text[])))
+ venda_produto | ck_venda_quantidade                | verificação (CHECK) | APD1   | t        | CHECK ((quantidade > 0))
+ venda_produto | ck_venda_valor                     | verificação (CHECK) | APD1   | t        | CHECK ((valor_unitario > (0)::numeric))
+(46 rows)
+
+
+########## database/apd3/03_auditoria.sql
+DO
+SET
+CREATE SCHEMA
+COMMENT
+CREATE TABLE
+COMMENT
+COMMENT
+COMMENT
+COMMENT
+COMMENT
+CREATE INDEX
+CREATE FUNCTION
+COMMENT
+CREATE FUNCTION
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE FUNCTION
+COMMENT
+REVOKE
+REVOKE
+REVOKE
+DO
+CREATE TRIGGER
+CREATE TRIGGER
+CREATE VIEW
+COMMENT
+CREATE VIEW
+COMMENT
+RESET
+             tabela             |           gatilho           |                                                                                   definicao                                                                                    
+--------------------------------+-----------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ agendamento                    | trg_auditoria               | CREATE TRIGGER trg_auditoria AFTER INSERT OR DELETE OR UPDATE ON public.agendamento FOR EACH ROW EXECUTE FUNCTION auditoria.registrar_alteracao('id_agendamento')
+ agendamento                    | trg_auditoria_truncate      | CREATE TRIGGER trg_auditoria_truncate AFTER TRUNCATE ON public.agendamento FOR EACH STATEMENT EXECUTE FUNCTION auditoria.registrar_alteracao('id_agendamento')
+ auditoria.registro_alteracao   | trg_trilha_sem_truncate     | CREATE TRIGGER trg_trilha_sem_truncate BEFORE TRUNCATE ON auditoria.registro_alteracao FOR EACH STATEMENT EXECUTE FUNCTION auditoria.impedir_alteracao_da_trilha()
+ auditoria.registro_alteracao   | trg_trilha_somente_inclusao | CREATE TRIGGER trg_trilha_somente_inclusao BEFORE DELETE OR UPDATE ON auditoria.registro_alteracao FOR EACH ROW EXECUTE FUNCTION auditoria.impedir_alteracao_da_trilha()
+ cliente                        | trg_auditoria               | CREATE TRIGGER trg_auditoria AFTER INSERT OR DELETE OR UPDATE ON public.cliente FOR EACH ROW EXECUTE FUNCTION auditoria.registrar_alteracao('id_cliente')
+ cliente                        | trg_auditoria_truncate      | CREATE TRIGGER trg_auditoria_truncate AFTER TRUNCATE ON public.cliente FOR EACH STATEMENT EXECUTE FUNCTION auditoria.registrar_alteracao('id_cliente')
+ pagamento                      | trg_auditoria               | CREATE TRIGGER trg_auditoria AFTER INSERT OR DELETE OR UPDATE ON public.pagamento FOR EACH ROW EXECUTE FUNCTION auditoria.registrar_alteracao('id_pagamento')
+ pagamento                      | trg_auditoria_truncate      | CREATE TRIGGER trg_auditoria_truncate AFTER TRUNCATE ON public.pagamento FOR EACH STATEMENT EXECUTE FUNCTION auditoria.registrar_alteracao('id_pagamento')
+ produto                        | trg_auditoria               | CREATE TRIGGER trg_auditoria AFTER INSERT OR DELETE OR UPDATE ON public.produto FOR EACH ROW EXECUTE FUNCTION auditoria.registrar_alteracao('id_produto')
+ produto                        | trg_auditoria_truncate      | CREATE TRIGGER trg_auditoria_truncate AFTER TRUNCATE ON public.produto FOR EACH STATEMENT EXECUTE FUNCTION auditoria.registrar_alteracao('id_produto')
+ profissional                   | trg_auditoria               | CREATE TRIGGER trg_auditoria AFTER INSERT OR DELETE OR UPDATE ON public.profissional FOR EACH ROW EXECUTE FUNCTION auditoria.registrar_alteracao('id_profissional')
+ profissional                   | trg_auditoria_truncate      | CREATE TRIGGER trg_auditoria_truncate AFTER TRUNCATE ON public.profissional FOR EACH STATEMENT EXECUTE FUNCTION auditoria.registrar_alteracao('id_profissional')
+ seguranca.usuario_profissional | trg_auditoria               | CREATE TRIGGER trg_auditoria AFTER INSERT OR DELETE OR UPDATE ON seguranca.usuario_profissional FOR EACH ROW EXECUTE FUNCTION auditoria.registrar_alteracao('id_profissional')
+ seguranca.usuario_profissional | trg_auditoria_truncate      | CREATE TRIGGER trg_auditoria_truncate AFTER TRUNCATE ON seguranca.usuario_profissional FOR EACH STATEMENT EXECUTE FUNCTION auditoria.registrar_alteracao('id_profissional')
+ servico                        | trg_auditoria               | CREATE TRIGGER trg_auditoria AFTER INSERT OR DELETE OR UPDATE ON public.servico FOR EACH ROW EXECUTE FUNCTION auditoria.registrar_alteracao('id_servico')
+ servico                        | trg_auditoria_truncate      | CREATE TRIGGER trg_auditoria_truncate AFTER TRUNCATE ON public.servico FOR EACH STATEMENT EXECUTE FUNCTION auditoria.registrar_alteracao('id_servico')
+ venda_produto                  | trg_auditoria               | CREATE TRIGGER trg_auditoria AFTER INSERT OR DELETE OR UPDATE ON public.venda_produto FOR EACH ROW EXECUTE FUNCTION auditoria.registrar_alteracao('id_venda')
+ venda_produto                  | trg_auditoria_truncate      | CREATE TRIGGER trg_auditoria_truncate AFTER TRUNCATE ON public.venda_produto FOR EACH STATEMENT EXECUTE FUNCTION auditoria.registrar_alteracao('id_venda')
+(18 rows)
+
+
+########## database/apd3/04_visoes.sql
+DO
+CREATE SCHEMA
+COMMENT
+CREATE SCHEMA
+COMMENT
+CREATE VIEW
+COMMENT
+CREATE VIEW
+COMMENT
+CREATE VIEW
+COMMENT
+CREATE VIEW
+COMMENT
+CREATE VIEW
+COMMENT
+CREATE VIEW
+COMMENT
+                  view                  |                                                    descricao                                                    
+----------------------------------------+-----------------------------------------------------------------------------------------------------------------
+ agenda.vw_minha_agenda                 | APD3 | Atendimentos do profissional conectado, com o primeiro nome do cliente. Sem telefone, e-mail ou valores.
+ relatorios.vw_clientes_novos_por_mes   | APD3 | Quantos clientes se cadastraram em cada mês. Nenhum dado de cliente individual.
+ relatorios.vw_faturamento_mensal       | APD3 | Receita mensal de serviços (pagamentos) e de produtos (vendas), com descontos concedidos.
+ relatorios.vw_ocupacao_profissionais   | APD3 | Atendimentos por profissional e mês. A comissão fica de fora (dado de remuneração).
+ relatorios.vw_produtos_estoque_baixo   | APD3 | Produtos ativos que precisam de reposição (qtd_estoque <= estoque_minimo).
+ relatorios.vw_servicos_mais_realizados | APD3 | Por serviço: atendimentos concluídos, cancelamentos e receita bruta.
+(6 rows)
+
+
+########## database/apd3/05_privilegios.sql
+DO
+SET
+DO
+ALTER FUNCTION
+ALTER FUNCTION
+ALTER FUNCTION
+ALTER PROCEDURE
+ALTER FUNCTION
+ALTER FUNCTION
+ALTER FUNCTION
+ALTER PROCEDURE
+ALTER PROCEDURE
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+REVOKE
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+REVOKE
+ALTER DEFAULT PRIVILEGES
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+DO
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+GRANT
+ALTER DEFAULT PRIVILEGES
+ALTER DEFAULT PRIVILEGES
+RESET
+                 objeto                 |            gerente             |                                                                                 recepcao                                                                                 |                                                  profissional                                                   | relatorios | auditoria | backup 
+----------------------------------------+--------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------+------------+-----------+--------
+ agenda.vw_minha_agenda                 | -                              | -                                                                                                                                                                        | SELECT                                                                                                          | -          | -         | -
+ auditoria.registro_alteracao           | -                              | -                                                                                                                                                                        | -                                                                                                               | -          | SELECT    | SELECT
+ auditoria.vw_privilegios               | -                              | -                                                                                                                                                                        | -                                                                                                               | -          | SELECT    | SELECT
+ auditoria.vw_usuarios_e_perfis         | -                              | -                                                                                                                                                                        | -                                                                                                               | -          | SELECT    | SELECT
+ public.agendamento                     | SELECT, INSERT, UPDATE, DELETE | SELECT; INSERT(id_cliente, id_profissional, id_servico, data_agendamento, hora, status); UPDATE(id_cliente, id_profissional, id_servico, data_agendamento, hora, status) | SELECT(id_agendamento, id_cliente, id_profissional, id_servico, data_agendamento, hora, status); UPDATE(status) | -          | -         | SELECT
+ public.cliente                         | SELECT, INSERT, UPDATE, DELETE | SELECT, INSERT, UPDATE                                                                                                                                                   | -                                                                                                               | -          | -         | SELECT
+ public.pagamento                       | SELECT, INSERT, UPDATE, DELETE | SELECT; INSERT(id_agendamento, forma_pagamento, desconto, parcelas)                                                                                                      | -                                                                                                               | -          | -         | SELECT
+ public.produto                         | SELECT, INSERT, UPDATE, DELETE | SELECT                                                                                                                                                                   | SELECT                                                                                                          | -          | -         | SELECT
+ public.profissional                    | SELECT, INSERT, UPDATE, DELETE | SELECT(id_profissional, nome, especialidade, telefone)                                                                                                                   | -                                                                                                               | -          | -         | SELECT
+ public.servico                         | SELECT, INSERT, UPDATE, DELETE | SELECT                                                                                                                                                                   | SELECT                                                                                                          | -          | -         | SELECT
+ public.venda_produto                   | SELECT, INSERT, UPDATE, DELETE | SELECT; INSERT(id_cliente, id_produto, id_profissional, quantidade, forma_pagamento)                                                                                     | -                                                                                                               | -          | -         | SELECT
+ relatorios.vw_clientes_novos_por_mes   | SELECT                         | -                                                                                                                                                                        | -                                                                                                               | SELECT     | -         | -
+ relatorios.vw_faturamento_mensal       | SELECT                         | -                                                                                                                                                                        | -                                                                                                               | SELECT     | -         | -
+ relatorios.vw_ocupacao_profissionais   | SELECT                         | -                                                                                                                                                                        | -                                                                                                               | SELECT     | -         | -
+ relatorios.vw_produtos_estoque_baixo   | SELECT                         | -                                                                                                                                                                        | -                                                                                                               | SELECT     | -         | -
+ relatorios.vw_servicos_mais_realizados | SELECT                         | -                                                                                                                                                                        | -                                                                                                               | SELECT     | -         | -
+ seguranca.usuario_profissional         | SELECT, INSERT, UPDATE, DELETE | -                                                                                                                                                                        | SELECT                                                                                                          | -          | -         | SELECT
+(17 rows)
+
+
+########## database/apd3/06_rls.sql
+DO
+SET
+psql:06_rls.sql:71: NOTICE:  policy "pol_gerente_acesso_total" for relation "public.cliente" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_backup_leitura_total" for relation "public.cliente" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_gerente_acesso_total" for relation "public.profissional" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_backup_leitura_total" for relation "public.profissional" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_gerente_acesso_total" for relation "public.servico" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_backup_leitura_total" for relation "public.servico" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_gerente_acesso_total" for relation "public.agendamento" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_backup_leitura_total" for relation "public.agendamento" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_gerente_acesso_total" for relation "public.pagamento" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_backup_leitura_total" for relation "public.pagamento" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_gerente_acesso_total" for relation "public.produto" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_backup_leitura_total" for relation "public.produto" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_gerente_acesso_total" for relation "public.venda_produto" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_backup_leitura_total" for relation "public.venda_produto" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_gerente_acesso_total" for relation "seguranca.usuario_profissional" does not exist, skipping
+psql:06_rls.sql:71: NOTICE:  policy "pol_backup_leitura_total" for relation "seguranca.usuario_profissional" does not exist, skipping
+DO
+psql:06_rls.sql:74: NOTICE:  policy "pol_recepcao_le_clientes" for relation "public.cliente" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:77: NOTICE:  policy "pol_recepcao_cadastra_clientes" for relation "public.cliente" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:80: NOTICE:  policy "pol_recepcao_corrige_clientes" for relation "public.cliente" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:84: NOTICE:  policy "pol_recepcao_le_profissionais" for relation "public.profissional" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:88: NOTICE:  policy "pol_recepcao_le_servicos" for relation "public.servico" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:92: NOTICE:  policy "pol_recepcao_le_produtos" for relation "public.produto" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:96: NOTICE:  policy "pol_recepcao_le_agendamentos" for relation "public.agendamento" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:100: NOTICE:  policy "pol_recepcao_marca_agendamentos" for relation "public.agendamento" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:105: NOTICE:  policy "pol_recepcao_remarca_cancela" for relation "public.agendamento" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:111: NOTICE:  policy "pol_recepcao_le_pagamentos" for relation "public.pagamento" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:116: NOTICE:  policy "pol_recepcao_registra_pagamentos" for relation "public.pagamento" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:120: NOTICE:  policy "pol_recepcao_le_vendas" for relation "public.venda_produto" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:123: NOTICE:  policy "pol_recepcao_registra_vendas" for relation "public.venda_produto" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:129: NOTICE:  policy "pol_profissional_propria_agenda" for relation "public.agendamento" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:135: NOTICE:  policy "pol_profissional_conclui_propria" for relation "public.agendamento" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:141: NOTICE:  policy "pol_profissional_servicos_ativos" for relation "public.servico" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:145: NOTICE:  policy "pol_profissional_produtos_ativos" for relation "public.produto" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+psql:06_rls.sql:149: NOTICE:  policy "pol_profissional_proprio_vinculo" for relation "seguranca.usuario_profissional" does not exist, skipping
+DROP POLICY
+CREATE POLICY
+RESET
+             tabela             | rls_ligado |             politica             | comando |       perfis        |                                                      linhas_visiveis                                                       |                                                      linhas_gravaveis                                                       
+--------------------------------+------------+----------------------------------+---------+---------------------+----------------------------------------------------------------------------------------------------------------------------+-----------------------------------------------------------------------------------------------------------------------------
+ public.agendamento             | t          | pol_backup_leitura_total         | SELECT  | perfil_backup       | true                                                                                                                       | 
+ public.agendamento             | t          | pol_gerente_acesso_total         | ALL     | perfil_gerente      | true                                                                                                                       | true
+ public.agendamento             | t          | pol_profissional_conclui_propria | UPDATE  | perfil_profissional | ((id_profissional = ( SELECT seguranca.id_profissional_atual() AS id_profissional_atual)) AND (status = 'agendado'::text)) | ((id_profissional = ( SELECT seguranca.id_profissional_atual() AS id_profissional_atual)) AND (status = 'concluido'::text))
+ public.agendamento             | t          | pol_profissional_propria_agenda  | SELECT  | perfil_profissional | (id_profissional = ( SELECT seguranca.id_profissional_atual() AS id_profissional_atual))                                   | 
+ public.agendamento             | t          | pol_recepcao_le_agendamentos     | SELECT  | perfil_recepcao     | true                                                                                                                       | 
+ public.agendamento             | t          | pol_recepcao_marca_agendamentos  | INSERT  | perfil_recepcao     |                                                                                                                            | (status = 'agendado'::text)
+ public.agendamento             | t          | pol_recepcao_remarca_cancela     | UPDATE  | perfil_recepcao     | (status = 'agendado'::text)                                                                                                | (status = ANY (ARRAY['agendado'::text, 'cancelado'::text]))
+ public.cliente                 | t          | pol_backup_leitura_total         | SELECT  | perfil_backup       | true                                                                                                                       | 
+ public.cliente                 | t          | pol_gerente_acesso_total         | ALL     | perfil_gerente      | true                                                                                                                       | true
+ public.cliente                 | t          | pol_recepcao_cadastra_clientes   | INSERT  | perfil_recepcao     |                                                                                                                            | true
+ public.cliente                 | t          | pol_recepcao_corrige_clientes    | UPDATE  | perfil_recepcao     | true                                                                                                                       | true
+ public.cliente                 | t          | pol_recepcao_le_clientes         | SELECT  | perfil_recepcao     | true                                                                                                                       | 
+ public.pagamento               | t          | pol_backup_leitura_total         | SELECT  | perfil_backup       | true                                                                                                                       | 
+ public.pagamento               | t          | pol_gerente_acesso_total         | ALL     | perfil_gerente      | true                                                                                                                       | true
+ public.pagamento               | t          | pol_recepcao_le_pagamentos       | SELECT  | perfil_recepcao     | true                                                                                                                       | 
+ public.pagamento               | t          | pol_recepcao_registra_pagamentos | INSERT  | perfil_recepcao     |                                                                                                                            | true
+ public.produto                 | t          | pol_backup_leitura_total         | SELECT  | perfil_backup       | true                                                                                                                       | 
+ public.produto                 | t          | pol_gerente_acesso_total         | ALL     | perfil_gerente      | true                                                                                                                       | true
+ public.produto                 | t          | pol_profissional_produtos_ativos | SELECT  | perfil_profissional | ativo                                                                                                                      | 
+ public.produto                 | t          | pol_recepcao_le_produtos         | SELECT  | perfil_recepcao     | true                                                                                                                       | 
+ public.profissional            | t          | pol_backup_leitura_total         | SELECT  | perfil_backup       | true                                                                                                                       | 
+ public.profissional            | t          | pol_gerente_acesso_total         | ALL     | perfil_gerente      | true                                                                                                                       | true
+ public.profissional            | t          | pol_recepcao_le_profissionais    | SELECT  | perfil_recepcao     | true                                                                                                                       | 
+ public.servico                 | t          | pol_backup_leitura_total         | SELECT  | perfil_backup       | true                                                                                                                       | 
+ public.servico                 | t          | pol_gerente_acesso_total         | ALL     | perfil_gerente      | true                                                                                                                       | true
+ public.servico                 | t          | pol_profissional_servicos_ativos | SELECT  | perfil_profissional | (ativo = 1)                                                                                                                | 
+ public.servico                 | t          | pol_recepcao_le_servicos         | SELECT  | perfil_recepcao     | true                                                                                                                       | 
+ public.venda_produto           | t          | pol_backup_leitura_total         | SELECT  | perfil_backup       | true                                                                                                                       | 
+ public.venda_produto           | t          | pol_gerente_acesso_total         | ALL     | perfil_gerente      | true                                                                                                                       | true
+ public.venda_produto           | t          | pol_recepcao_le_vendas           | SELECT  | perfil_recepcao     | true                                                                                                                       | 
+ public.venda_produto           | t          | pol_recepcao_registra_vendas     | INSERT  | perfil_recepcao     |                                                                                                                            | true
+ seguranca.usuario_profissional | t          | pol_backup_leitura_total         | SELECT  | perfil_backup       | true                                                                                                                       | 
+ seguranca.usuario_profissional | t          | pol_gerente_acesso_total         | ALL     | perfil_gerente      | true                                                                                                                       | true
+ seguranca.usuario_profissional | t          | pol_profissional_proprio_vinculo | SELECT  | perfil_profissional | (usuario = CURRENT_USER)                                                                                                   | 
+(34 rows)
+
+
+########## database/apd3/07_administracao.sql
+DO
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+ALTER ROLE
+      usuario       | limite_conexoes | senha_valida_ate |                                                   parametros_de_sessao                                                    
+--------------------+-----------------+------------------+---------------------------------------------------------------------------------------------------------------------------
+ analista_salao     |               2 | 31/03/2027 23:59 | default_transaction_read_only=on; idle_in_transaction_session_timeout=5min; search_path=relatorios; statement_timeout=60s
+ auditor_salao      |               2 | 31/03/2027 23:59 | default_transaction_read_only=on; idle_in_transaction_session_timeout=5min; search_path=auditoria; statement_timeout=60s
+ backup_salao       |               2 | sem expiração    | default_transaction_read_only=on; idle_in_transaction_session_timeout=10min; search_path=public; statement_timeout=0
+ gerente_salao      |               3 | 31/03/2027 23:59 | idle_in_transaction_session_timeout=5min; search_path=public; statement_timeout=60s
+ profissional_salao |               2 | 31/03/2027 23:59 | idle_in_transaction_session_timeout=2min; search_path=agenda, public; statement_timeout=30s
+ recepcao_salao     |               5 | 31/03/2027 23:59 | idle_in_transaction_session_timeout=2min; search_path=public; statement_timeout=30s
+(6 rows)
+

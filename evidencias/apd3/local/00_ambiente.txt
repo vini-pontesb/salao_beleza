@@ -1,0 +1,31 @@
+===============================================================================
+APD3 · Base de dados do salão de beleza · 00 · Ambiente da execução local
+Gerado em: 17/11/2026 21:12:28 (Brasília)
+Banco: PostgreSQL local que reproduz o Supabase (ver database/apd3/ambiente-local/README.md)
+===============================================================================
+Versões usadas para gerar as evidências desta pasta.
+
+Servidor:      PostgreSQL 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1) on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, 64-bit
+Cliente psql:  psql (PostgreSQL) 16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)
+
+Base da APD1 reproduzida por database/apd3/ambiente-local/estrutura_apd1.sql (tabelas do schema public):
+ - agendamento
+ - cliente
+ - pagamento
+ - produto
+ - profissional
+ - servico
+ - venda_produto
+
+Dados fictícios carregados (database/apd3/ambiente-local/dados_ficticios.sql):
+    tabela     | linhas 
+---------------+--------
+ cliente       |     20
+ profissional  |      8
+ servico       |     10
+ agendamento   |     20
+ pagamento     |      8
+ produto       |     10
+ venda_produto |     15
+(7 rows)
+

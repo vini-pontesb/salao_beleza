@@ -1,0 +1,81 @@
+===============================================================================
+APD3 · Base de dados do salão de beleza · 08 · Idempotência e reversão
+Gerado em: 17/11/2026 21:12:33 (Brasília)
+Banco: PostgreSQL local que reproduz o Supabase (ver database/apd3/ambiente-local/README.md)
+===============================================================================
+Os scripts podem ser rodados de novo sem erro; o 99 desfaz tudo; reaplicar volta ao mesmo estado.
+
+--- 8.1 Segunda aplicação dos scripts 01 a 07 sobre o banco já configurado (nenhum erro esperado)
+OK   01_perfis_e_usuarios.sql
+OK   02_integridade.sql
+OK   03_auditoria.sql
+OK   04_visoes.sql
+OK   05_privilegios.sql
+OK   06_rls.sql
+OK   07_administracao.sql
+
+--- 8.2 Reversão (database/apd3/99_reverter.sql): o que sobra da APD3 depois dela (deve vir vazio)
+DO
+SET
+DO
+ALTER FUNCTION
+ALTER FUNCTION
+ALTER FUNCTION
+ALTER PROCEDURE
+ALTER FUNCTION
+ALTER FUNCTION
+ALTER FUNCTION
+ALTER PROCEDURE
+ALTER PROCEDURE
+GRANT
+ALTER DEFAULT PRIVILEGES
+DO
+DROP SCHEMA
+DROP SCHEMA
+DO
+DROP SCHEMA
+DO
+DROP SCHEMA
+DROP ROLE
+DROP ROLE
+DROP ROLE
+DROP ROLE
+DROP ROLE
+DROP ROLE
+DROP ROLE
+DROP ROLE
+DROP ROLE
+DROP ROLE
+DROP ROLE
+DROP ROLE
+RESET
+ tipo | nome 
+------+------
+(0 rows)
+
+
+--- 8.3 Diagnóstico depois da reversão: de volta ao estado da APD1 (resumo por situação)
+ RLS               | Tabelas do public SEM Row Level Security                                           | 0 de 7                                                                                                                                                                                                                               | OK
+ RLS               | Políticas de linha no schema public (sem política, só o dono vê as linhas)         | 0                                                                                                                                                                                                                                    | PENDENTE
+ Funções           | Rotinas do public sem search_path fixo                                             | 9 (fn_comissao_profissional, fn_horario_disponivel, fn_total_gasto_cliente, fn_trg_agendamento_regras, fn_trg_pagamento_valida, fn_trg_venda_estoque, sp_cancelar_agendamentos_expirados, sp_concluir_atendimento, sp_repor_estoque) | RISCO
+ Funções           | Rotinas do public que QUALQUER usuário (PUBLIC) executa                            | 9                                                                                                                                                                                                                                    | RISCO
+ Funções           | Rotinas SECURITY DEFINER (rodam com o privilégio do dono)                          | 0                                                                                                                                                                                                                                    | INFO
+ Auditoria         | Tabelas com gatilho de auditoria (7 do public + vínculo de profissionais)          | 0 de 8                                                                                                                                                                                                                               | PENDENTE
+ Auditoria         | Trilha de auditoria (auditoria.registro_alteracao)                                 | ausente                                                                                                                                                                                                                              | PENDENTE
+ Views             | Views de relatório (relatorios) e de agenda (agenda)                               | 0 e 0                                                                                                                                                                                                                                | PENDENTE
+
+--- 8.4 Reaplicação dos scripts 01 a 07 depois da reversão, e os testes de novo
+OK   01_perfis_e_usuarios.sql
+OK   02_integridade.sql
+OK   03_auditoria.sql
+OK   04_visoes.sql
+OK   05_privilegios.sql
+OK   06_rls.sql
+OK   07_administracao.sql
+psql:90_testes_acesso_e_operacao.sql:440: NOTICE:  Atendimento 34 concluído. Valor pago: R$ 100.00 (pix).
+psql:90_testes_acesso_e_operacao.sql:440: NOTICE:  Produto 13: estoque reposto para 15 unidades.
+psql:90_testes_acesso_e_operacao.sql:440: NOTICE:  Atendimento 33 concluído. Valor pago: R$ 100.00 (dinheiro).
+psql:90_testes_acesso_e_operacao.sql:440: NOTICE:  Atendimento 33 concluído. Valor pago: R$ 100.00 (pix).
+ 999 | RESUMO             | 97 de 97 casos passaram                                                 |                    |                                                    |                                                    | PASSOU    | 
+
+As contas recriadas nascem sem senha, como manda o script 01: as senhas temporárias dos testes de login deixaram de existir com a reversão.

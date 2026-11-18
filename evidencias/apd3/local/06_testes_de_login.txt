@@ -1,0 +1,101 @@
+===============================================================================
+APD3 · Base de dados do salão de beleza · 06 · Testes com login de verdade (usuário e senha, por TCP)
+Gerado em: 17/11/2026 21:12:29 (Brasília)
+Banco: PostgreSQL local que reproduz o Supabase (ver database/apd3/ambiente-local/README.md)
+===============================================================================
+Parte dos mecanismos só vale no login (parâmetros de sessão, senha, validade, limite de conexões, SET ROLE). As senhas foram geradas na hora e não estão gravadas em lugar nenhum. Alterações feitas aqui rodam entre BEGIN e ROLLBACK.
+
+--- 6.1 auditor_salao ainda não recebeu senha: o login é recusado
+psql: error: connection to server at "127.0.0.1", port 5433 failed: FATAL:  password authentication failed for user "auditor_salao"
+
+--- 6.2 Conta expirada (VALID UNTIL no passado) não entra, mesmo com a senha certa
+psql: error: connection to server at "127.0.0.1", port 5433 failed: FATAL:  password authentication failed for user "apd3_expirada"
+
+--- 6.3 recepcao_salao entra e recebe os parâmetros do script 07
+  current_user  |  session_user  
+----------------+----------------
+ recepcao_salao | recepcao_salao
+(1 row)
+
+ search_path 
+-------------
+ public
+(1 row)
+
+ statement_timeout 
+-------------------
+ 30s
+(1 row)
+
+ idle_in_transaction_session_timeout 
+-------------------------------------
+ 2min
+(1 row)
+
+--- 6.4 recepcao_salao não consegue virar o DBA nem a gerência (SET ROLE)
+ERROR:  permission denied to set role "postgres"
+ERROR:  permission denied to set role "gerente_salao"
+
+--- 6.5 recepcao_salao conclui um atendimento pelo procedimento (o pagamento sai com o valor do agendamento)
+BEGIN
+NOTICE:  Atendimento 11 concluído. Valor pago: R$ 35.00 (pix).
+CALL
+ id_agendamento |  status   | valor_pago | forma_pagamento 
+----------------+-----------+------------+-----------------
+             11 | concluido |      35.00 | pix
+(1 row)
+
+ROLLBACK
+--- 6.6 recepcao_salao tenta ver a comissão dos profissionais
+ERROR:  permission denied for table profissional
+
+--- 6.7 profissional_salao vê a própria agenda (view pelo search_path) e só os próprios agendamentos (RLS)
+  search_path   
+----------------
+ agenda, public
+(1 row)
+
+ id_agendamento | data_agendamento | hora  |       servico       | duracao_minutos | cliente_primeiro_nome |  status   
+----------------+------------------+-------+---------------------+-----------------+-----------------------+-----------
+              8 | 2026-11-14       | 16:00 | Coloração           |              90 | Cliente               | concluido
+             16 | 2026-11-22       | 14:00 | Depilação de pernas |              45 | Cliente               | agendado
+(2 rows)
+
+ agendamentos_visiveis 
+-----------------------
+                     2
+(1 row)
+
+--- 6.8 profissional_salao conclui o próprio atendimento, mas não alcança o de outro profissional
+BEGIN
+UPDATE 1
+UPDATE 0
+ROLLBACK
+
+--- 6.9 analista_salao entra em modo somente leitura e usa as views pelo search_path
+ default_transaction_read_only 
+-------------------------------
+ on
+(1 row)
+
+ search_path 
+-------------
+ relatorios
+(1 row)
+
+    mes     | atendimentos_pagos | receita_servicos | descontos_concedidos | itens_vendidos | receita_produtos | receita_total 
+------------+--------------------+------------------+----------------------+----------------+------------------+---------------
+ 2026-11-01 |                  8 |           650.00 |                15.00 |             23 |           997.70 |       1647.70
+(1 row)
+
+ERROR:  cannot execute CREATE TABLE in a read-only transaction
+--- 6.10 analista_salao tenta ler clientes
+ERROR:  permission denied for table cliente
+
+--- 6.11 Limite de conexões: backup_salao aceita no máximo 2 sessões simultâneas
+(duas sessões abertas; abrindo a terceira)
+psql: error: connection to server at "127.0.0.1", port 5433 failed: FATAL:  too many connections for role "backup_salao"
+
+--- 6.12 O que a API automática do Supabase faz: entra como authenticator e assume anon
+SET
+ERROR:  permission denied for table cliente

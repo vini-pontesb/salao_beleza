@@ -15,7 +15,7 @@ produtos. O repositório também traz a aplicação web que usa essa base.
 |---|---|---|
 | APD1 | Base relacional, carga de dados, consultas e subconsultas | `database/`, `docs/`, `evidencias/apd1/` |
 | APD2 | Procedures, functions e triggers | `database/` (05 a 08), `docs/`, `evidencias/apd2/` |
-| APD3 | Usuários, papéis e privilégios | (em breve) |
+| APD3 | Usuários, perfis, privilégios, RLS, auditoria e integridade | `database/apd3/`, `docs/`, `evidencias/apd3/` |
 | APD6 | Módulo NoSQL | (em breve) |
 | APD7 | ETL e base analítica | (em breve) |
 
@@ -34,12 +34,16 @@ database/
   06_procedures.sql          3 procedures
   07_triggers.sql            3 triggers (e suas funções fn_trg_)
   08_testes_apd2.sql         testes das rotinas da APD2 (com ROLLBACK)
+  apd3/                      scripts da APD3 (00 a 07, 90, 91 e 99) e ambiente local de teste
 docs/
   Documentacao_Tecnica_BDII.docx
   modelo_logico.png          modelo lógico exportado
   modelo_logico.dot          fonte editável do diagrama (Graphviz)
+  modelo_logico_apd3.png     modelo lógico com as tabelas criadas na APD3 (também .svg e .dot)
+  apd3_politicas_administracao_seguranca_integridade.md   políticas da APD3 em detalhe
 evidencias/apd1/             saída da execução dos scripts da APD1
 evidencias/apd2/             saída da execução dos scripts da APD2 e prints
+evidencias/apd3/             saídas da APD3: local/ (PostgreSQL local) e supabase/
 backend/                     API REST (Node.js + Express + pg)
 frontend/                    aplicação React (Vite)
 ```
@@ -86,6 +90,34 @@ Também é possível recriar a base pelo back-end, com `npm run db:init`
 | Trigger | `trg_agendamento_regras` | Preenche o valor, bloqueia serviço inativo e conflito de horário |
 
 Detalhes e justificativas na seção 3 da documentação técnica.
+
+## Administração, segurança e integridade (APD3)
+
+| Item da APD3 | Onde está |
+|---|---|
+| (i) Criação dos usuários | [`database/apd3/01_perfis_e_usuarios.sql`](database/apd3/01_perfis_e_usuarios.sql) |
+| (ii) Papéis, perfis e privilégios | [`05_privilegios.sql`](database/apd3/05_privilegios.sql) (tabela, coluna e rotina), [`06_rls.sql`](database/apd3/06_rls.sql) (linhas), [`04_visoes.sql`](database/apd3/04_visoes.sql), [`03_auditoria.sql`](database/apd3/03_auditoria.sql), [`02_integridade.sql`](database/apd3/02_integridade.sql) e [`07_administracao.sql`](database/apd3/07_administracao.sql) |
+| (iii) Documentação | Seção 4 de [`docs/Documentacao_Tecnica_BDII.docx`](docs/Documentacao_Tecnica_BDII.docx) e [`docs/apd3_politicas_administracao_seguranca_integridade.md`](docs/apd3_politicas_administracao_seguranca_integridade.md) |
+| (iv) Evidências | [`evidencias/apd3/`](evidencias/apd3/), com os scripts [`00`](database/apd3/00_diagnostico.sql) (diagnóstico antes e depois), [`90`](database/apd3/90_testes_acesso_e_operacao.sql) (97 testes de acesso e operação) e [`91`](database/apd3/91_inventario.sql) (inventário) |
+
+| Perfil | Usuário | Pode | Não pode |
+|---|---|---|---|
+| `perfil_gerente` | `gerente_salao` | Ler e alterar todos os dados de negócio, rodar todas as rotinas | DDL, `TRUNCATE`, ler a trilha de auditoria |
+| `perfil_recepcao` | `recepcao_salao` | Clientes, agendamentos, pagamentos e vendas | Excluir, ver comissão, digitar valores |
+| `perfil_profissional` | `profissional_salao` | Ver e concluir só a própria agenda (RLS) | Ver agenda de colegas e contato de clientes |
+| `perfil_relatorios` | `analista_salao` | Views agregadas, sem dado pessoal | Ler tabelas |
+| `perfil_auditoria` | `auditor_salao` | Trilha de auditoria e inventário de privilégios | Ler dados do negócio |
+| `perfil_backup` | `backup_salao` | Ler tudo para o `pg_dump` | Gravar qualquer coisa |
+
+Também: API automática do Supabase fechada, rotinas com `EXECUTE` só para
+quem usa e `search_path` fixo, trilha de auditoria somente inclusão (sem
+copiar valores), 8 restrições `CHECK` novas e limites de conexão, tempo e
+validade para cada conta. Como aplicar no Supabase:
+[`database/apd3/README.md`](database/apd3/README.md).
+
+O `01_criacao_tabelas.sql` apaga as tabelas e, com elas, o que a APD3 criou
+sobre elas. Depois de recriar a base, rode `database/apd3/99_reverter.sql` e
+de novo os scripts 01 a 07 da APD3.
 
 ## Aplicação web
 
